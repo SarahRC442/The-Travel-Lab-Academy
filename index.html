@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Travel Lab — Adventures That Build Brilliant Minds</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{
+  --navy:#1F3A5F;--navy2:#0D2137;--sky:#5DADE2;--blue:#1A8FE3;
+  --magenta:#E91E8C;--yellow:#F4D03F;--white:#FFFFFF;
+  --card:rgba(255,255,255,0.07);--border:rgba(93,173,226,0.25);
+  --text:rgba(255,255,255,0.9);--muted:rgba(255,255,255,0.6);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Open Sans",sans-serif;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);background-attachment:fixed;color:var(--text);min-height:100vh;font-size:16px;line-height:1.7}
+a{text-decoration:none;color:inherit}
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.4)}
+select option{background:#1F3A5F;color:white}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:rgba(255,255,255,0.05)}
+::-webkit-scrollbar-thumb{background:rgba(93,173,226,0.3);border-radius:4px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:50px;border:none;cursor:pointer;font-family:"Montserrat",sans-serif;font-weight:700;font-size:15px;letter-spacing:0.5px;transition:all 0.2s;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--magenta),#FF6BB3);color:white;box-shadow:0 4px 20px rgba(233,30,140,0.4)}
+.btn-secondary{background:linear-gradient(135deg,var(--blue),var(--sky));color:white;box-shadow:0 4px 20px rgba(26,143,227,0.3)}
+.btn-outline{background:transparent;color:white;border:2px solid rgba(255,255,255,0.3)}
+.btn:hover{transform:translateY(-2px)}
+@keyframes floatUp{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(-110vh) rotate(360deg)}}
+@media print{
+  body{background:white !important}
+  .no-print,nav,.app-footer,.myway-btn{display:none !important}
+  .cert-print{border:3px solid #1F3A5F !important;box-shadow:none !important}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-type="module">
+const { useState, useRef, useEffect, useMemo } = React;
+const LOGO = "data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADaARcDASIAAhEBAxEB/8QAHAABAAIDAQEBAAAAAAAAAAAAAAUHBAYIAQMC/8QASRAAAQMDAwIBBwcGCwkBAAAAAQACAwQFEQYSIQcxExQiQVFhgZEIFTJScaHBFiOClLHSJFNUYnJ0kqKywvAXJTNDY5Oj0eHx/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAEDAgQFBgf/xAA0EQACAQMCBAMGBgEFAAAAAAAAAQIDBBEFIRIxQVFhcYEGEyKRwfAUMjOx0eGhI2JykvH/2gAMAwEAAhEDEQA/AOykREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAXixLtWSUNBNVw0VTXOiGfApw0yP/AKIcQD8Vpdb1Z0tTwSNaLhJcGO2fN/krmzl/qwePv+KupW9Wt+nHJq3F7Qtv1pqPn9O/kb+vVA6NuV7u1ufW3m0NtRe/8xAZC+TZju/gYPsU8q5wcJOL6F1KrGrBTjyfdY/wwiIsSwIiIAiIgCIiAIiIAiIgCIiAIiIAiIgMS718FrtlTcarxPAponSyeGwvdgDJw0ck+wKu/wDbnobywUQbfzWFu8U3zLUeKW/WDNu7HtwrOVC6WkZdvlh6hnyJBbrV4bT9QgQtI+LyrIRTzkwm2sYN1HVi2za+0vpOjtFwlfqGmfUxTysMJp2NbK785G4Bwz4LgM47hWKFzrfRV3z5SWr6+33U2puntONpZ65jA+WFhaJSYg4Fu/z3DcQcDdxnGNZ0T1P1fFonSdiqrpdZqzUV4nbJcQ01NTFSROiDmRAglz3l7gHEHbg+zGbo55GCq45nWKKuuito1pbmXup1TWVnkNZV+JabfW1XlNRRwgu4kky7JILPN3OA298kqxVTJYeC1PKCLErLhRUYzU1UUXsLufh3WAL3NUu22221NQP4x48NnxKyjTlLdIrnXpweG9+3N/ImUJx3UV4N8qf+LV09Iz6sLN7vi7/0v1HZKTH8KlqKxx7meUkfAYH3KeCK5sj3k5flj89v5Z957pb4HbJKuLf9VrtzvgOV424GTmGiq3j1mPYP72FkU9NT07dsEEcQ9TGgL7KMx6IlKo+b+/vwMPxq958ykhYPW+bJHuA/FfRjKs8yTQ/oREfeSVkIscmSj3ZDaltVbc6WGOiu9VbpWSjfJAQC+M/SbjHfHY+g4Wt0PTWzW3VdpvNtjLPJBM+ofLK6SSeR4Aa4k9yPP59q3xFdTuatOLjF4T+pr1rGhWkp1I5aw14Y327ePcBRGo9Q2+xthbUmSWpqCWwU0Dd8sp/mtHu5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";
+
+const PANELS = {
+  transport: {
+    maglev: { emoji:"🚄", name:"Maglev Train", color:"#5DADE2", desc:"Maglev stands for Magnetic Levitation. The train floats above the track using powerful magnets, there are no wheels at all! No friction means incredible speeds.", facts:["Electromagnets lift the train 10mm off the surface","Reaches speeds of up to 600km/h","Shanghai Maglev reaches 430km/h in daily use","No wheels means almost no maintenance","Completely silent compared to normal trains"] },
+    hyperloop: { emoji:"⚡", name:"Hyperloop", color:"#E91E8C", desc:"Passengers sit in a pod inside a giant tube with almost no air inside. With no air resistance, the pod can travel at the speed of a plane but at ground level!", facts:["Air is pumped out to create a near-vacuum","Magnetic motors accelerate the pod","Reaches up to 1,000km/h","First commercial routes being built now in America and Europe","Could connect cities 500km apart in under 30 minutes"] },
+    cable: { emoji:"🚡", name:"Cable Car", color:"#2ecc71", desc:"Gondolas hang from a moving steel cable and glide through the air. Perfect for mountains, cities with rivers, or anywhere building a road would be impossible.", facts:["A continuous loop of steel cable runs between stations","Gondolas grip the cable to move and release to stop","Emirates Air Line crosses the River Thames in London","The Vanoise Express in France carries skiers across a huge valley","Perfect for hilly cities where roads cannot go"] },
+    drone: { emoji:"🚁", name:"Air Taxi", color:"#F4D03F", desc:"Electric flying vehicles that carry passengers through the sky above a city. No roads, no traffic jams, just a direct flight from rooftop to rooftop!", facts:["Multiple electric rotors lift it like a giant drone","A computer controls them all automatically","Joby Aviation in the USA is already testing passenger air taxis","Dubai wants a full air taxi network by 2026","Could transform travel in congested cities"] },
+    monorail: { emoji:"🚝", name:"Monorail", color:"#9b59b6", desc:"A train that runs on a single rail instead of two. It either sits on top of the rail or hangs underneath it, which means it can go above city streets without taking up road space.", facts:["A single beam acts as both the track and the support","Rubber tyres grip the beam, quieter than steel wheels","Tokyo Monorail carries 36 million passengers a year","Disney parks use monorails too","Can climb steeper hills than normal trains"] }
+  },
+  bridge: {
+    suspension: { emoji:"🌉", name:"Suspension Bridge", color:"#5DADE2", desc:"Cables hang from tall towers and hold up the road deck below. The cables spread the weight across the whole bridge, that is what makes them so strong.", facts:["Giant steel cables stretch from tower to tower","Vertical ropes called hangers drop down to hold the road","Golden Gate Bridge in San Francisco is 2,737 metres long","Can span very long distances over water","The longer the bridge the more efficient this design becomes"] },
+    glass: { emoji:"🔷", name:"Glass Bridge", color:"#E91E8C", desc:"The road deck is made entirely of transparent glass or perspex. When you walk across it you can see straight down to the drop below. Designed to be thrilling as well as beautiful.", facts:["Thick tempered glass panels sit in a strong steel frame","The glass can hold the weight of hundreds of people","Zhangjiajie Glass Bridge in China is 430 metres long","It sits 300 metres above the valley floor","The glass is stronger than most people expect"] },
+    floating: { emoji:"🌊", name:"Floating Bridge", color:"#2ecc71", desc:"Instead of being held up by towers or arches, the road deck actually floats on the water surface, supported by large hollow pontoons underneath.", facts:["Large sealed hollow sections called pontoons float like boats","The road deck is built on top of them","Anchors stop it drifting away","Hood Canal Bridge in Washington USA is over 2km long","Perfect for crossing wide shallow lakes or calm water"] },
+    solar: { emoji:"☀️", name:"Solar Bridge", color:"#F4D03F", desc:"A bridge with solar panels built into the surface or along the sides that generate electricity as the sun shines. The bridge powers itself and sometimes the surrounding area too!", facts:["Photovoltaic solar cells are embedded in the road surface","They convert sunlight into electricity and feed the power grid","Blackfriars Bridge in London has 4,400 solar panels","It is the world's largest solar powered bridge","Combines solving a transport problem with generating clean energy"] },
+    arch: { emoji:"🏛️", name:"Arch Bridge", color:"#E91E8C", desc:"One of the oldest bridge designs in history! A curved arch spreads the weight of the bridge outwards to the banks on either side. The harder you push down, the stronger the arch gets.", facts:["The arch converts downward force into outward forces","The ground at each end absorbs those forces","Sydney Harbour Bridge is nicknamed The Coathanger","Arch bridges have been built for over 3,000 years","The Romans built arch bridges that still stand today"] },
+    cablestayed: { emoji:"🏗️", name:"Cable Stayed Bridge", color:"#9b59b6", desc:"Similar to a suspension bridge but the cables go directly from the tower to the road deck in a fan or harp pattern. They are more efficient and often look incredibly dramatic.", facts:["Cables connect directly from tower to road deck at an angle","Each cable shares the load","Millau Viaduct in France is the tallest bridge in the world at 343 metres","Taller than the Eiffel Tower","Cheaper to build than suspension bridges for medium spans"] }
+  },
+  airport: {
+    changi: { emoji:"🇸🇬", name:"Changi Airport, Singapore", color:"#2ecc71", desc:"Voted the world's best airport 12 years in a row!", facts:["A 40 metre indoor waterfall called the Rain Vortex","An indoor forest with 2,000 trees and plants","A rooftop swimming pool and gardens","A cinema, slides and a butterfly garden","Passengers can take a free city tour between flights","68 million passengers every year"] },
+    dubai: { emoji:"🇦🇪", name:"Dubai International Airport", color:"#F4D03F", desc:"The busiest international airport in the world!", facts:["A dedicated terminal just for the Airbus A380 superjumbo","An indoor garden with 120 plant species","A 5 star hotel inside the terminal","Gold vending machines in the departures hall","A dedicated terminal for horses flying first class","86 million passengers every year"] },
+    heathrow: { emoji:"🇬🇧", name:"Heathrow Airport, London", color:"#5DADE2", desc:"One of the busiest airports in Europe and the UK's biggest!", facts:["Two runways handle 1,300 flights every single day","Its own underground train station","A wildlife corridor for bats and birds","A hotel literally built ON TOP of the terminal","A care farm where passengers can meet animals to reduce stress","79 million passengers every year"] },
+    kansai: { emoji:"🇯🇵", name:"Kansai Airport, Japan", color:"#E91E8C", desc:"Built on an artificial island in the middle of the sea!", facts:["The entire airport sits on a man made island 4km offshore","Connected to the mainland only by a double decker bridge","The terminal building is 1.7km long, you need a train between gates","Designed by legendary architect Renzo Piano","Survived a direct hit from Typhoon Jebi in 2018","The island is slowly sinking and engineers raise the buildings to compensate"] },
+    future: { emoji:"🚀", name:"The Airport of the Future", color:"#9b59b6", desc:"What might airports look like in 50 years?", facts:["Face recognition means no passport checks or boarding passes","Electric and hydrogen powered aircraft, completely silent","Vertical takeoff aircraft land on rooftops in city centres","Luggage is delivered to your home before you even land","Carbon neutral buildings powered entirely by renewable energy","Your design today could be reality by the time you are old enough to be an architect"] }
+  },
+  hotel: {
+    ice: { emoji:"🧊", name:"ICEHOTEL, Sweden", color:"#5DADE2", desc:"Built entirely from ice and snow, and rebuilt every single winter!", facts:["Every room is sculpted from 30,000 tonnes of ice and snow","Temperature inside stays at minus 5 degrees","Artists from around the world compete to design the rooms","It melts completely every spring and is rebuilt each November","You can get married in the ice chapel","It has been rebuilt every year since 1990"] },
+    underwater: { emoji:"🐠", name:"Conrad Maldives Rangali Island", color:"#2ecc71", desc:"The world's first underwater hotel suite, you sleep surrounded by the ocean!", facts:["The bedroom is 5 metres below the surface of the Indian Ocean","360 degree views of tropical fish and coral reef from your bed","A spiral staircase leads down from the water surface","Costs over £40,000 per night to stay","Guests fall asleep watching sharks, rays and fish swim past","The glass walls are 270mm thick, stronger than submarine windows"] },
+    treehouse: { emoji:"🌳", name:"Treehotel, Sweden", color:"#F4D03F", desc:"A collection of extraordinary rooms suspended high in the trees!", facts:["One room is shaped like a giant bird's nest","Another is a perfect mirrored cube that reflects the forest","A UFO shaped room hovers between the trees","All rooms are connected by bridges and rope walkways","The mirrored cube is completely invisible from the outside","Wildlife roams freely around and below the rooms"] },
+    cave: { emoji:"🪨", name:"Cappadocia Cave Hotels, Turkey", color:"#E91E8C", desc:"Luxury hotels carved directly into 3,000 year old volcanic rock!", facts:["Rooms carved into ancient caves used for thousands of years","Hot air balloon flights from your terrace at sunrise","Underground cities beneath the hotels go 18 floors deep","Some rooms have ceilings painted by Byzantine monks 1,000 years ago","Natural insulation keeps rooms warm in winter and cool in summer","The underground cities could shelter 20,000 people from invaders"] },
+    space: { emoji:"🚀", name:"Voyager Station, Coming 2027", color:"#9b59b6", desc:"The world's first space hotel is actually being built right now!", facts:["A rotating wheel shaped station 500km above Earth","Artificial gravity created by the spinning of the station","Rooms with views of Earth through panoramic windows","Sports facilities designed for low gravity","Restaurants serving food grown on board the station","A stay is expected to cost around £3 million"] }
+  },
+  park: {
+    disney: { emoji:"🏰", name:"Walt Disney World, Florida", color:"#F4D03F", desc:"The most visited theme park on Earth, 58 million visitors every year!", facts:["Four separate theme parks plus two water parks","An underground tunnel network lets cast members travel invisibly","Every single rubbish bin is placed exactly 30 steps apart","Smells are pumped into the air near each ride to match the theme","Cinderella's Castle has a secret apartment Walt Disney never used","Disney employs 77,000 people, the largest single employer in the USA"] },
+    alton: { emoji:"🎢", name:"Alton Towers, UK", color:"#E91E8C", desc:"The UK's most visited theme park, hidden inside a 500 acre woodland estate!", facts:["Rides hidden in a valley so they cannot be seen from outside","A hotel where every bedroom has a different theme","Smiler holds the world record for most loops on a rollercoaster, 14 loops","The original house is a 19th century Gothic mansion","Guests can stay in pods suspended in the treetops","The ruins of the mansion are used as backdrop for scary rides"] },
+    ferrari: { emoji:"🏎️", name:"Ferrari World, Abu Dhabi", color:"#e74c3c", desc:"Home to Formula Rossa, the fastest rollercoaster in the world!", facts:["Formula Rossa goes from 0 to 240km/h in under 5 seconds","The building roof is shaped like the Ferrari logo, visible from space","A junior driving school where children drive mini Ferraris","Real Formula 1 simulators used by actual racing drivers","A replica of an Italian village street inside the park","Riders must wear goggles to protect their eyes from insects at 240km/h"] },
+    universal: { emoji:"🎬", name:"Universal Studios", color:"#9b59b6", desc:"Step inside your favourite films, Harry Potter, Jurassic Park, Minions and more!", facts:["The Wizarding World of Harry Potter recreates Hogsmeade and Diagon Alley perfectly","A full scale replica of Hogwarts castle dominates the skyline","Rides use real film sets and actors","New rides open to match new film releases","The whole park changes theme and decoration for Halloween","Universal spent £250 million on the Harry Potter area alone"] },
+    future: { emoji:"🚀", name:"The Theme Park of the Future", color:"#5DADE2", desc:"What will theme parks look like in 2050?", facts:["Augmented reality glasses overlay digital worlds on real spaces","AI customises every ride experience uniquely for each visitor","Rides that respond to how you are feeling in real time","Fully sustainable parks powered by renewable energy","Personalised storylines where you are the hero","Some designers believe future parks will be entirely virtual from home"] }
+  },
+  invention: {
+    internet: { emoji:"🌐", name:"The Internet", color:"#5DADE2", desc:"Scientists at different universities needed to share research but there was no way to send data between computers.", facts:["Tim Berners-Lee invented the World Wide Web in 1989","He was working at CERN in Switzerland","He gave his invention to the world for free","Today 5 billion people use the internet","It changed education, shopping, communication and entertainment","Tim Berners-Lee was just 34 when he invented the web"] },
+    phone: { emoji:"📱", name:"The Smartphone", color:"#E91E8C", desc:"People needed a computer, a camera, a map, a music player, a phone and a torch but nobody wanted to carry seven different devices.", facts:["Steve Jobs revealed the first iPhone in 2007","He said he was putting a phone, an iPod and an internet communicator into one device","The audience gasped","There are now 6.8 billion smartphones in the world","Almost one for every person on Earth","The touchscreen technology was actually invented in 1965, 40 years before the iPhone"] },
+    gps: { emoji:"🗺️", name:"GPS Navigation", color:"#2ecc71", desc:"Ships, planes and armies needed to know exactly where they were anywhere on Earth but maps, compasses and stars were not accurate enough.", facts:["The US military developed GPS in the 1970s","It was originally top secret","Opened to the public in the 1980s","GPS uses the same maths that Einstein developed in 1905","Without Einstein's equations the satellites would drift by 10km every day","GPS guides planes, ships, cars, delivery drivers and your phone"] },
+    solar: { emoji:"☀️", name:"Solar Power", color:"#F4D03F", desc:"Humans were burning coal and oil for energy but these would run out and were damaging the planet.", facts:["Scientists at Bell Labs created the first practical solar cell in 1954","It was only 6% efficient, modern panels reach 23%","Solar is now the cheapest source of electricity ever invented","In 2023 solar power generated more electricity than nuclear power for the first time","The Sahara Desert receives enough sunlight to power the entire world 7,000 times over","Solar panels have no moving parts and need almost no maintenance"] },
+    kids: { emoji:"🧒", name:"Inventions by Young People!", color:"#9b59b6", desc:"You do not have to be old to change the world. Some of the most important inventions were created by teenagers and young people.", facts:["Louis Braille invented the Braille reading system at age 15","Philo Farnsworth invented the first all-electronic television at 21","George Nissen invented the trampoline at 16","Chester Greenwood invented earmuffs at 15","Frank Epperson invented the ice lolly at 11, by accident","YOU are exactly the right age to have an idea that changes the world"] }
+  },
+  city: {
+    neom: { emoji:"🇸🇦", name:"NEOM: The Line, Saudi Arabia", color:"#5DADE2", desc:"A city with NO roads, NO cars and NO carbon emissions, 170km long and just 200 metres wide!", facts:["Built in a straight line 170km long through the desert and mountains","Only 200 metres wide but 500 metres tall, a vertical city","High speed trains run through the centre","Powered entirely by renewable energy","A mirrored exterior that reflects the surrounding desert landscape","Construction began in 2021 and is expected to cost £400 billion"] },
+    singapore: { emoji:"🇸🇬", name:"Singapore, The Smart City", color:"#2ecc71", desc:"The world's most technologically advanced city and the greenest!", facts:["Buildings are required by law to have green rooftop gardens","A nationwide sensor network monitors everything in real time","Driverless buses and taxis operate on the public roads","80% of residents live in government built apartments","Trees and plants are built into the sides of skyscrapers","Singapore has no natural resources yet is one of the richest countries on Earth"] },
+    masdar: { emoji:"🌿", name:"Masdar City, Abu Dhabi", color:"#F4D03F", desc:"The world's first city designed to produce zero carbon and zero waste!", facts:["No cars allowed inside the city, ever","An underground network of driverless electric pods carries people everywhere","Every building uses 75% less energy than a normal building","Solar panels cover almost every surface","Shade structures and narrow streets keep the city 20 degrees cooler than the desert","The designers studied ancient Arabic architecture to learn how to keep cool"] },
+    copenhagen: { emoji:"🚲", name:"Copenhagen, Denmark", color:"#E91E8C", desc:"The world's most cycle friendly city and one of the happiest places to live on Earth!", facts:["62% of residents cycle to work or school every single day","More bicycles than people in the city","Cycle lanes are wider than car lanes on most roads","The entire city will be carbon neutral by 2025","Harbours are so clean that people swim in them in the city centre","Copenhagen has been ranked the world's most liveable city multiple times"] }
+  }
+};
+
+const CHALLENGES = [
+  {
+    n: 1, icon: '🏗️', title: 'Building Spotter Challenge',
+    intro: 'Explorers keep their eyes open everywhere they go. Can you spot all ten? Tick each one off as you find it out there in the world!',
+    spotter: ['Skyscraper','Bridge','Hotel','Apartment Block','Stadium','Airport','Train Station','Historic Building','Modern Building','Building With Glass Walls'],
+    fields: [{ label: 'My favourite building I spotted', placeholder: 'Describe it here...' }],
+    draw: 'Sketch the most amazing building you spotted!',
+  },
+  {
+    n: 2, icon: '🚀', title: 'Transport Challenge',
+    intro: 'Cars, planes, trains, they have all been done. Your mission is to invent a completely new way for people to get from A to B. What would you create?',
+    panel: 'transport',
+    fields: [
+      { label: 'Name of your transport', placeholder: 'Invent a great name...' },
+      { label: 'Top speed', placeholder: 'How fast does it go?' },
+      { label: 'Power source', placeholder: 'What powers it?' },
+      { label: 'Who would use it', placeholder: 'Who needs this most?' },
+      { label: 'Why is it better than everything else?', placeholder: 'Make the case for your invention...', wide: true },
+    ],
+    draw: 'Design your transport, fill the page with your invention!',
+  },
+  {
+    n: 3, icon: '🌉', title: 'Bridge Builder Challenge',
+    intro: 'Every great city needs bridges. They do not just connect places, they connect people. Design a bridge that is strong, beautiful and completely original.',
+    panel: 'bridge',
+    fields: [
+      { label: 'The bridge connects', placeholder: 'What two places does it link?', wide: true },
+      { label: 'Materials you will use', placeholder: 'What is it made of?', wide: true },
+      { label: 'What makes your bridge unique', placeholder: 'What makes it unlike any other bridge?', wide: true },
+    ],
+    draw: 'Design your bridge here!',
+  },
+  {
+    n: 4, icon: '✈️', title: 'Airport of the Future',
+    intro: 'Forget every airport you have ever been to. You are about to design one nobody has ever seen before. Think big, think bold, think future.',
+    panel: 'airport',
+    fields: [
+      { label: 'How do people travel to it?', placeholder: 'Pod? Train? Teleport?' },
+      { label: 'How does luggage work?', placeholder: 'Robots? Tubes? Magic?' },
+      { label: 'What does security look like?', placeholder: 'Face scan? Voice?' },
+      { label: 'What makes it fun and exciting?', placeholder: 'What makes people love it?' },
+    ],
+    draw: 'Design your airport, make it legendary!',
+  },
+  {
+    n: 5, icon: '🏔️', title: 'Design Your Dream Accommodation',
+    intro: 'On a cliff above the ocean? Hidden in a forest? Floating on a lagoon? Your accommodation can be anywhere in the world and can have anything you can imagine inside it.',
+    fields: [
+      { label: 'Where in the world is it?', placeholder: 'Describe the location...', wide: true },
+      { label: 'What rooms does it have?', placeholder: 'List every room...', wide: true },
+      { label: 'The most amazing feature', placeholder: 'What makes it unforgettable?', wide: true },
+    ],
+    draw: 'Design your dream accommodation here!',
+  },
+  {
+    n: 6, icon: '🏨', title: 'Design Your Dream Hotel',
+    intro: 'You have just been handed the keys to your very own luxury hotel. It can be anywhere in the world, on a mountain, under the sea, in the clouds or somewhere nobody has ever imagined.',
+    panel: 'hotel',
+    fields: [
+      { label: 'Hotel name', placeholder: 'Give it a legendary name...' },
+      { label: 'Location', placeholder: 'Where in the world?' },
+      { label: 'Number of rooms', placeholder: 'How many guests?' },
+      { label: 'Hotel style', placeholder: 'Luxury? Adventure? Eco?' },
+      { label: 'What makes it totally unique?', placeholder: 'The one thing no other hotel has...', wide: true },
+    ],
+    draw: 'Sketch your hotel, inside, outside or both!',
+  },
+  {
+    n: 7, icon: '🎢', title: 'Theme Park Design Lab',
+    intro: 'You have just been given a huge empty plot of land. Your mission: design the most incredible travel themed theme park the world has ever seen.',
+    panel: 'park',
+    fields: [
+      { label: 'Park name', placeholder: 'What is it called?' },
+      { label: 'Main ride', placeholder: 'The headline attraction...' },
+      { label: 'Food area', placeholder: 'What do guests eat?' },
+      { label: 'Entrance design', placeholder: 'What do guests see first?' },
+      { label: 'The one thing that makes it unlike any other park', placeholder: 'Your game changer...', wide: true },
+    ],
+    draw: 'Draw your park map here!',
+  },
+  {
+    n: 8, icon: '💡', title: 'Invent Something New',
+    intro: 'You have just arrived in your future city for the very first time. You look around and notice something is missing. Something that would make life better for everyone who lives here. Nobody has invented it yet. Until now.',
+    panel: 'invention',
+    fields: [
+      { label: 'What is it called?', placeholder: 'Give it a brilliant name...', wide: true },
+      { label: 'What problem does it solve?', placeholder: 'Describe the problem and your solution...', wide: true },
+      { label: 'How does it work?', placeholder: 'Explain the mechanics...', wide: true },
+    ],
+    draw: 'Draw your invention, label every part!',
+  },
+  {
+    n: 9, icon: '🌆', title: 'Design Your Future City',
+    intro: 'You have explored transport, airports, hotels, bridges and parks. Now it is time to bring it all together. Design the most incredible city the world has never seen.',
+    panel: 'city',
+    cityChecklist: ['Homes','School','Hospital','Park','Beach','Shops','Stadium','Airport','Train Station'],
+    fields: [],
+    draw: 'Draw your future city, label every place!',
+  },
+]
+
+const REAL_WORLD = {
+  icon: '🌍', title: 'Out in the World',
+  intro: 'Next time you visit an airport, a building site or a new city, keep your eyes open, explorer!',
+  airport: ['Find your gate number','Spot 3 different languages on signs','Count how many shops you can see','Find the tallest window','Spot a material you have never noticed'],
+  city: ['Find the oldest building you can see','Spot a building under construction','Count cranes in the skyline','Find a building that surprises you','Sketch the most interesting rooftop'],
+  field: { label: 'The most interesting building I found', placeholder: 'Tell us about it...' },
+  draw: 'Sketch what you found on your real world mission!',
+}
+
+const RANKS = [
+  { rank: 'RANK 1', name: 'Junior Architect', req: 'Complete any 3 challenges' },
+  { rank: 'RANK 2', name: 'City Planner', req: 'Complete 6 challenges' },
+  { rank: 'RANK 3', name: 'Future Designer', req: 'Complete all challenges' },
+  { rank: 'RANK 4', name: 'Master Builder', req: 'Complete all and add extra detail' },
+]
+
+const XP_ROWS = ['Building Spotter','Transport Challenge','Bridge Builder','Airport of the Future','Dream Accommodation','Dream Hotel','Theme Park Lab','Invent Something New','Future City','Real World Mission']
+
+// ===== MISSIONS LIBRARY DATA =====
+// All Travel Lab missions. Mission 001 is live; the rest are Coming Soon.
+// To add the other explorer-level versions later, add new entries with the
+// same shape and set live:true plus a route.
+
+const MISSIONS = [
+  {
+    id: '001',
+    number: 'MISSION 001',
+    career: 'Future Architect',
+    level: 'Adventure Explorer',
+    blurb: 'Design airports, build bridges, invent transport and plan an entire future city from scratch.',
+    ranks: ['Junior Architect', 'City Planner', 'Future Designer', 'Master Builder'],
+    icon: '🏗️',
+    accent: '#1A8FE3',
+    price: '£5.99',
+    live: true,
+    route: '/mission/001',
+  },
+  {
+    id: '002', number: 'MISSION 002', career: 'Future Vet', level: 'Adventure Explorer',
+    blurb: 'Diagnose patients, design your surgery and build an animal sanctuary.',
+    ranks: ['Animal Helper', 'Junior Vet', 'Senior Vet', 'Chief Vet'],
+    icon: '🐾', accent: '#2ecc71', price: '£5.99', live: false,
+  },
+  {
+    id: '003', number: 'MISSION 003', career: 'Future Football Manager', level: 'Adventure Explorer',
+    blurb: 'Build your dream team, master tactics and sign players in the transfer window.',
+    ranks: ['Scout', 'Assistant Coach', 'Head Coach', 'Elite Manager'],
+    icon: '⚽', accent: '#27ae60', price: '£5.99', live: false,
+  },
+  {
+    id: '004', number: 'MISSION 004', career: 'Future Hotel Owner', level: 'Adventure Explorer',
+    blurb: 'Handle difficult guests, design luxury rooms and create your signature restaurant menu.',
+    ranks: ['Receptionist', 'Duty Manager', 'Hotel Director', 'Five Star Owner'],
+    icon: '🏨', accent: '#9b59b6', price: '£5.99', live: false,
+  },
+  {
+    id: '005', number: 'MISSION 005', career: 'Future Travel Blogger', level: 'Adventure Explorer',
+    blurb: 'Write travel stories, frame the perfect shot and plan your dream content trip.',
+    ranks: ['Explorer', 'Travel Writer', 'Content Creator', 'World Influencer'],
+    icon: '📸', accent: '#e91e63', price: '£5.99', live: false,
+  },
+  {
+    id: '006', number: 'MISSION 006', career: 'Future Cabin Crew', level: 'Adventure Explorer',
+    blurb: 'Write the safety demonstration, handle emergencies and design your airline.',
+    ranks: ['Trainee', 'Crew Member', 'Senior Crew', 'Chief Purser'],
+    icon: '✈️', accent: '#3498db', price: '£5.99', live: false,
+  },
+  {
+    id: '007', number: 'MISSION 007', career: 'Future Pilot', level: 'Adventure Explorer',
+    blurb: 'Plan flight routes, read the weather and fly your aircraft around the world.',
+    ranks: ['Cadet', 'First Officer', 'Captain', 'Chief Pilot'],
+    icon: '🛩️', accent: '#e67e22', price: '£5.99', live: false,
+  },
+  {
+    id: '008', number: 'MISSION 008', career: 'Future App Developer', level: 'Adventure Explorer',
+    blurb: 'Design an app, build the logic and launch your big idea to the world.',
+    ranks: ['Coder', 'Developer', 'Lead Engineer', 'Tech Founder'],
+    icon: '💻', accent: '#1abc9c', price: '£5.99', live: false,
+  },
+  {
+    id: '009', number: 'MISSION 009', career: 'Future Chef', level: 'Adventure Explorer',
+    blurb: 'Invent dishes, design your kitchen and run your own signature restaurant.',
+    ranks: ['Kitchen Helper', 'Line Cook', 'Head Chef', 'Michelin Star'],
+    icon: '👨‍🍳', accent: '#e74c3c', price: '£5.99', live: false,
+  },
+]
+
+const LEVELS = [
+  { id: 'early', name: 'Early Explorer', ages: 'Ages 4 to 7', icon: '🌱', accent: '#5DADE2',
+    blurb: 'Big drawing spaces, simple challenges, lots of fun. Perfect for little adventurers.', status: 'Coming Soon' },
+  { id: 'adventure', name: 'Adventure Explorer', ages: 'Ages 7 to 11', icon: '🚀', accent: '#E91E8C',
+    blurb: 'XP, ranks, real world missions and genuine career discovery. Building now!', status: 'LIVE NOW' },
+  { id: 'future', name: 'Future Leader', ages: 'Ages 11 to 16', icon: '🌍', accent: '#F4D03F',
+    blurb: 'Complex scenarios, business thinking and real world decision making.', status: 'Coming Soon' },
+]
+
+// ===== SHARED COMPONENTS =====
+const EMOJIS = ['✈️','🦩','🚕','🚌','⛴️','🏗️','🚐','⭐','🗺️','🏛️'];
+
+function FloatingEmojis(){
+  const items = useMemo(()=>{
+    const arr=[];
+    for(let i=0;i<18;i++){
+      arr.push({emoji:EMOJIS[Math.floor(Math.random()*EMOJIS.length)],left:Math.random()*100,delay:Math.random()*20,duration:18+Math.random()*22,size:18+Math.random()*22,opacity:0.18+Math.random()*0.22});
+    }
+    return arr;
+  },[]);
+  return (
+    <div style={{position:'fixed',inset:0,overflow:'hidden',pointerEvents:'none',zIndex:0}}>
+      {items.map((it,i)=>(
+        <span key={i} style={{position:'absolute',left:it.left+'%',bottom:'-60px',fontSize:it.size+'px',opacity:it.opacity,animation:`floatUp ${it.duration}s linear ${it.delay}s infinite`}}>{it.emoji}</span>
+      ))}
+    </div>
+  );
+}
+
+function NavBar({go}){
+  const link={fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:15,color:'rgba(255,255,255,0.85)',cursor:'pointer'};
+  return (
+    <nav style={{position:'sticky',top:0,zIndex:100,background:'rgba(13,33,55,0.95)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap'}}>
+      <span onClick={()=>go('home')} style={{display:'flex',alignItems:'center',flexShrink:0,cursor:'pointer'}}>
+        <img src={LOGO} alt="The Travel Lab" style={{height:56,objectFit:'contain',background:'white',borderRadius:10,padding:4}}/>
+      </span>
+      <div style={{display:'flex',alignItems:'center',gap:24,flexWrap:'wrap'}}>
+        <span onClick={()=>go('control')} style={link}>Mission Control</span>
+        <span onClick={()=>go('certificate')} style={link}>Certificate</span>
+        <span onClick={()=>go('about')} style={link}>About</span>
+        <button onClick={()=>go('missions')} className="btn btn-primary" style={{padding:'12px 24px',fontSize:14}}>Explore Missions</button>
+      </div>
+    </nav>
+  );
+}
+
+function Footer({go}){
+  const fl={color:'rgba(255,255,255,0.7)',textDecoration:'underline',fontSize:15,cursor:'pointer'};
+  return (
+    <footer className="app-footer" style={{position:'relative',zIndex:1,padding:'60px 24px 40px',textAlign:'center',borderTop:'1px solid var(--border)',marginTop:40}}>
+      <img src={LOGO} alt="The Travel Lab" style={{height:64,objectFit:'contain',background:'white',borderRadius:12,padding:6,marginBottom:24}}/>
+      <div style={{display:'flex',gap:24,justifyContent:'center',flexWrap:'wrap',marginBottom:20}}>
+        <span onClick={()=>go('certificate')} style={fl}>Certificate</span>
+        <span onClick={()=>go('control')} style={fl}>Mission Control</span>
+        <span onClick={()=>go('about')} style={fl}>About</span>
+      </div>
+      <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,color:'var(--magenta)',letterSpacing:4,fontStyle:'italic',marginBottom:16}}>Dream &nbsp; Discover &nbsp; Become</div>
+      <div style={{fontSize:13,color:'var(--muted)'}}>© 2026 The Travel Lab by C442 Apps</div>
+    </footer>
+  );
+}
+
+function MyWay(){
+  const [open,setOpen]=useState(false);
+  const [s,setS]=useState({dyslexia:false,contrast:false,text:false});
+  useEffect(()=>{
+    const b=document.body, r=document.documentElement;
+    b.style.fontFamily=s.dyslexia?"'Comic Sans MS',cursive":"";
+    b.style.letterSpacing=s.dyslexia?'0.05em':'';
+    r.style.fontSize=s.text?'20px':'';
+    b.style.background=s.contrast?'#000':'';
+  },[s]);
+  const t=(k)=>setS(p=>({...p,[k]:!p[k]}));
+  const rows=[{k:'dyslexia',i:'🔤',l:'Dyslexia friendly font'},{k:'contrast',i:'🌗',l:'High contrast'},{k:'text',i:'📏',l:'Larger text'}];
+  return (
+    <>
+      <button className="myway-btn no-print" onClick={()=>setOpen(o=>!o)} style={{position:'fixed',bottom:20,right:20,zIndex:400,display:'flex',alignItems:'center',gap:6,background:'rgba(13,33,55,0.95)',border:'1px solid rgba(93,173,226,0.4)',color:'white',borderRadius:50,padding:'12px 18px',cursor:'pointer',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14,boxShadow:'0 4px 20px rgba(0,0,0,0.4)'}}>🧠 My Way</button>
+      {open && (
+        <div className="no-print" style={{position:'fixed',bottom:74,right:20,zIndex:400,background:'rgba(13,33,55,0.98)',border:'1px solid rgba(93,173,226,0.4)',borderRadius:16,padding:16,width:250,boxShadow:'0 8px 32px rgba(0,0,0,0.6)'}}>
+          <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,color:'var(--sky)',letterSpacing:2,marginBottom:12}}>🧠 MY WAY</div>
+          {rows.map(r=>(
+            <div key={r.k} onClick={()=>t(r.k)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 10px',borderRadius:10,cursor:'pointer',marginBottom:6,background:s[r.k]?'rgba(93,173,226,0.12)':'rgba(255,255,255,0.04)',border:'1px solid '+(s[r.k]?'rgba(93,173,226,0.3)':'rgba(255,255,255,0.08)')}}>
+              <span style={{display:'flex',alignItems:'center',gap:8}}><span>{r.i}</span><span style={{fontSize:12,color:'rgba(255,255,255,0.85)'}}>{r.l}</span></span>
+              <span style={{width:32,height:18,borderRadius:50,position:'relative',background:s[r.k]?'var(--sky)':'rgba(255,255,255,0.15)'}}>
+                <span style={{position:'absolute',top:2,left:s[r.k]?16:2,width:14,height:14,borderRadius:'50%',background:'white',transition:'left 0.2s'}}/>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ===== MISSION PACK COMPONENTS =====
+function InfoPanel({category,title,subtitle}){
+  const data=PANELS[category];
+  const keys=Object.keys(data);
+  const [active,setActive]=useState(keys[0]);
+  const d=data[active];
+  return (
+    <div style={{background:'rgba(26,143,227,0.1)',border:'1px solid rgba(26,143,227,0.3)',borderRadius:12,marginBottom:20,overflow:'hidden'}}>
+      <div style={{padding:'14px 18px 10px'}}>
+        <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:12,color:'var(--sky)',letterSpacing:1,marginBottom:6}}>{title}</div>
+        <div style={{fontSize:12,color:'var(--muted)',marginBottom:12}}>{subtitle}</div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          {keys.map(k=>(
+            <span key={k} onClick={()=>setActive(k)} style={{background:active===k?'rgba(93,173,226,0.35)':'rgba(93,173,226,0.15)',border:'1px solid '+(active===k?'var(--sky)':'rgba(93,173,226,0.3)'),color:active===k?'white':'var(--sky)',borderRadius:50,padding:'4px 12px',fontSize:12,fontWeight:600,cursor:'pointer'}}>{data[k].emoji} {data[k].name.split(',')[0]}</span>
+          ))}
+        </div>
+      </div>
+      <div style={{background:'rgba(0,0,0,0.3)',borderTop:'1px solid rgba(93,173,226,0.2)',padding:'16px 18px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+          <span style={{fontSize:28}}>{d.emoji}</span>
+          <div>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:18,color:d.color}}>{d.name}</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,0.65)',marginTop:2}}>{d.desc}</div>
+          </div>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:6}}>
+          {d.facts.map((f,i)=>(<div key={i} style={{display:'flex',alignItems:'flex-start',gap:8,fontSize:13,color:'rgba(255,255,255,0.85)'}}><span style={{color:d.color,flexShrink:0,fontWeight:700}}>✓</span>{f}</div>))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DrawCanvas({height=300}){
+  const ref=useRef(null);
+  const [drawMode,setDrawMode]=useState(false);
+  const [color,setColor]=useState('#ffffff');
+  const [size,setSize]=useState(4);
+  const drawing=useRef(false), last=useRef({x:0,y:0});
+  useEffect(()=>{
+    const c=ref.current; if(!c) return;
+    c.width=c.offsetWidth;
+    const r=()=>{c.width=c.offsetWidth};
+    window.addEventListener('resize',r);
+    return ()=>window.removeEventListener('resize',r);
+  },[]);
+  const pos=(e)=>{const c=ref.current,r=c.getBoundingClientRect();const sx=c.width/r.width,sy=c.height/r.height;const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return {x:(cx-r.left)*sx,y:(cy-r.top)*sy};};
+  const start=(e)=>{if(!drawMode)return;e.preventDefault();drawing.current=true;last.current=pos(e);};
+  const move=(e)=>{if(!drawing.current||!drawMode)return;e.preventDefault();const c=ref.current,ctx=c.getContext('2d'),p=pos(e);ctx.beginPath();ctx.moveTo(last.current.x,last.current.y);ctx.lineTo(p.x,p.y);ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();last.current=p;};
+  const stop=()=>{drawing.current=false;};
+  const clear=()=>{const c=ref.current;c.getContext('2d').clearRect(0,0,c.width,c.height);};
+  const colors=['#ffffff','#5DADE2','#E91E8C','#F4D03F','#2ecc71'];
+  return (
+    <div style={{border:'2px solid rgba(233,30,140,0.4)',borderRadius:16,overflow:'hidden',background:'rgba(255,255,255,0.04)'}}>
+      <canvas ref={ref} height={height} onMouseDown={start} onMouseMove={move} onMouseUp={stop} onMouseLeave={stop} onTouchStart={start} onTouchMove={move} onTouchEnd={stop} style={{display:'block',width:'100%',height,touchAction:drawMode?'none':'auto',cursor:drawMode?'crosshair':'default'}}/>
+      <div className="no-print" style={{display:'flex',gap:8,padding:'10px 14px',background:'rgba(0,0,0,0.3)',alignItems:'center',flexWrap:'wrap'}}>
+        <button onClick={()=>setDrawMode(d=>!d)} style={{display:'flex',alignItems:'center',gap:6,borderRadius:20,padding:'4px 14px',cursor:'pointer',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,background:drawMode?'rgba(26,143,227,0.2)':'rgba(255,255,255,0.08)',border:'2px solid '+(drawMode?'var(--blue)':'rgba(255,255,255,0.2)'),color:drawMode?'var(--sky)':'rgba(255,255,255,0.6)'}}>
+          <span style={{width:8,height:8,borderRadius:'50%',background:drawMode?'var(--sky)':'rgba(255,255,255,0.3)'}}/>✏️ Draw Mode: {drawMode?'ON':'OFF'}
+        </button>
+        {colors.map(c=>(<div key={c} onClick={()=>setColor(c)} style={{width:24,height:24,borderRadius:'50%',background:c,cursor:'pointer',border:color===c?'2px solid white':'2px solid rgba(255,255,255,0.3)',transform:color===c?'scale(1.2)':'none'}}/>))}
+        {[3,6,12].map(sz=>(<button key={sz} onClick={()=>setSize(sz)} style={{background:size===sz?'var(--blue)':'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',color:'white',borderRadius:6,padding:'4px 10px',cursor:'pointer',fontSize:11,fontFamily:'Montserrat,sans-serif',fontWeight:700}}>{sz===3?'S':sz===6?'M':'L'}</button>))}
+        <button onClick={clear} style={{marginLeft:'auto',background:'rgba(233,30,140,0.2)',border:'1px solid rgba(233,30,140,0.4)',color:'var(--magenta)',borderRadius:20,padding:'4px 14px',cursor:'pointer',fontSize:11,fontFamily:'Montserrat,sans-serif',fontWeight:700}}>Clear</button>
+      </div>
+    </div>
+  );
+}
+
+function Spotter({items}){
+  const [ticked,setTicked]=useState({});
+  return (
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:10,marginBottom:20}}>
+      {items.map((label,i)=>{
+        const on=ticked[i];
+        return (
+          <div key={i} onClick={()=>setTicked(t=>({...t,[i]:!t[i]}))} style={{display:'flex',alignItems:'center',gap:12,cursor:'pointer',background:on?'rgba(26,143,227,0.15)':'rgba(255,255,255,0.04)',border:'2px solid '+(on?'var(--blue)':'rgba(255,255,255,0.1)'),borderRadius:12,padding:'12px 16px'}}>
+            <span style={{width:26,height:26,borderRadius:8,flexShrink:0,border:'2px solid '+(on?'var(--blue)':'rgba(255,255,255,0.3)'),background:on?'var(--blue)':'transparent',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:14}}>{on?'✓':''}</span>
+            <span style={{fontSize:14,fontWeight:600,color:on?'var(--muted)':'var(--text)',textDecoration:on?'line-through':'none'}}>{label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Field({f}){
+  return (
+    <div style={{marginBottom:20,gridColumn:f.wide?'1 / -1':'auto'}}>
+      <label style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14,color:'var(--sky)',marginBottom:8,display:'block'}}>{f.label}</label>
+      <textarea rows={f.wide?3:2} placeholder={f.placeholder} style={{width:'100%',background:'rgba(255,255,255,0.06)',border:'2px solid var(--border)',borderRadius:12,padding:'14px 18px',color:'white',fontFamily:'Open Sans,sans-serif',fontSize:15,outline:'none',resize:'vertical'}}/>
+    </div>
+  );
+}
+
+function CompleteBox(){
+  return (
+    <div style={{background:'rgba(26,143,227,0.08)',border:'2px solid rgba(26,143,227,0.3)',borderRadius:14,padding:'18px 20px',marginTop:24}}>
+      <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:12,color:'var(--blue)',letterSpacing:2,marginBottom:12}}>MISSION COMPLETE</div>
+      <div style={{display:'flex',gap:16,flexWrap:'wrap',marginBottom:12}}>
+        {['Completed','Shared with someone','Added extra detail','Improved my first idea'].map((l,i)=>(<label key={i} style={{display:'flex',alignItems:'center',gap:6,fontSize:13,color:'var(--muted)',cursor:'pointer'}}><input type="checkbox" style={{accentColor:'var(--blue)'}}/> {l}</label>))}
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:10,fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:13,color:'var(--magenta)'}}>XP Earned: <input type="number" placeholder="0" style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(233,30,140,0.3)',borderRadius:20,padding:'4px 14px',color:'white',width:100,textAlign:'center',outline:'none'}}/></div>
+    </div>
+  );
+}
+
+// ===== PAGES =====
+function HomePage({go}){
+  const careers=[{icon:'🏗️',label:'ARCHITECT'},{icon:'🐾',label:'VET'},{icon:'⚽',label:'FOOTBALL MANAGER'},{icon:'🏨',label:'HOTEL OWNER'},{icon:'📸',label:'TRAVEL BLOGGER'},{icon:'＋',label:'4 MORE COMING'}];
+  const steps=[{icon:'✈️',title:'Choose Your Mission',text:'Pick a career that excites you. Architect, pilot, chef or vet. There is a mission for every dream.'},{icon:'🏗️',title:'Complete the Challenges',text:'Every page is different. Draw, design, plan and invent. Boredom is not allowed.'},{icon:'⭐',title:'Earn XP and Ranks',text:'Complete challenges, earn XP and level up from Junior to Master. No two packs have the same ranks.'},{icon:'🏆',title:'Claim Your Certificate',text:'Finish your mission and collect your Certificate of Achievement. Print it. Frame it. Be proud.'}];
+  return (
+    <div style={{position:'relative',zIndex:1}}>
+      <section style={{textAlign:'center',padding:'80px 24px 60px',maxWidth:900,margin:'0 auto'}}>
+        <div style={{display:'inline-flex',alignItems:'center',gap:8,marginBottom:32,background:'linear-gradient(135deg,var(--magenta),#FF6BB3)',borderRadius:50,padding:'10px 28px',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:12,letterSpacing:2,color:'white',boxShadow:'0 4px 20px rgba(233,30,140,0.4)'}}>✈️ COMING SOON BE THE FIRST TO EXPLORE</div>
+        <h1 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(40px,8vw,76px)',lineHeight:1.05,marginBottom:16,background:'linear-gradient(135deg,#fff,var(--sky))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Adventures That Build Brilliant Minds</h1>
+        <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'clamp(18px,3vw,24px)',color:'var(--magenta)',letterSpacing:3,marginBottom:28}}>Dream &nbsp; Discover &nbsp; Become</div>
+        <p style={{fontSize:18,color:'var(--text)',maxWidth:680,margin:'0 auto 36px'}}>The Travel Lab turns every holiday, day trip and adventure into an <strong style={{color:'var(--yellow)'}}>epic mission.</strong> Children explore, design, invent and discover who they could become, one mission at a time.</p>
+        <button onClick={()=>go('missions')} className="btn btn-primary" style={{fontSize:17,padding:'16px 40px'}}>Explore Missions 🚀</button>
+      </section>
+      <section style={{maxWidth:1000,margin:'0 auto',padding:'20px 24px 60px',display:'flex',gap:12,flexWrap:'wrap',justifyContent:'center'}}>
+        {careers.map((c,i)=>(<div key={i} style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:14,padding:'20px 16px',textAlign:'center',minWidth:120,flex:'1 1 120px',maxWidth:160}}><div style={{fontSize:30,marginBottom:8}}>{c.icon}</div><div style={{fontFamily:'Montserrat,sans-serif',fontSize:11,fontWeight:700,color:'var(--sky)'}}>{c.label}</div></div>))}
+      </section>
+      <section style={{maxWidth:1000,margin:'0 auto',padding:'40px 24px'}}>
+        <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(28px,5vw,44px)',textAlign:'center',color:'white',marginBottom:8}}>How It Works</h2>
+        <p style={{textAlign:'center',color:'var(--muted)',marginBottom:40}}>Adventure with purpose. Discovery disguised as exploration.</p>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:16}}>
+          {steps.map((s,i)=>(<div key={i} style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:18,padding:28,textAlign:'center'}}><div style={{fontSize:40,marginBottom:14}}>{s.icon}</div><h3 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:18,color:'white',marginBottom:10}}>{s.title}</h3><p style={{fontSize:14,color:'var(--muted)'}}>{s.text}</p></div>))}
+        </div>
+      </section>
+      <section style={{maxWidth:1100,margin:'0 auto',padding:'60px 24px'}}>
+        <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(28px,5vw,44px)',textAlign:'center',color:'white',marginBottom:8}}>Three Explorer Levels</h2>
+        <p style={{textAlign:'center',color:'var(--muted)',marginBottom:40}}>Built for every age and every dreamer. Click your level to explore.</p>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20}}>
+          {LEVELS.map(l=>{const isLive=l.status==='LIVE NOW';return (
+            <div key={l.id} onClick={()=>isLive&&go('missions')} style={{background:'var(--card)',border:'2px solid '+(isLive?'var(--magenta)':'var(--border)'),borderRadius:20,padding:32,textAlign:'center',position:'relative',cursor:isLive?'pointer':'default'}}>
+              {isLive&&(<div style={{position:'absolute',top:16,right:16,background:'var(--magenta)',color:'white',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:10,letterSpacing:1,padding:'4px 12px',borderRadius:50}}>LIVE NOW</div>)}
+              <div style={{fontSize:48,marginBottom:16}}>{l.icon}</div>
+              <h3 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:22,color:'white',marginBottom:6}}>{l.name}</h3>
+              <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,color:l.accent,marginBottom:16}}>{l.ages}</div>
+              <p style={{fontSize:14,color:'var(--muted)'}}>{l.blurb}</p>
+            </div>);})}
+        </div>
+      </section>
+      <section style={{maxWidth:700,margin:'0 auto',padding:'40px 24px 80px',textAlign:'center'}}>
+        <div style={{background:'rgba(233,30,140,0.08)',border:'2px solid rgba(233,30,140,0.3)',borderRadius:24,padding:'48px 32px'}}>
+          <div style={{fontSize:48,marginBottom:16}}>🎯</div>
+          <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(24px,4vw,34px)',color:'white',marginBottom:12}}>Try a Free Taster Challenge</h2>
+          <p style={{color:'var(--muted)',marginBottom:28}}>Get a free mini challenge from Mission 001 straight to your inbox. No commitment. <strong style={{color:'var(--yellow)'}}>No spam, ever.</strong></p>
+          <button onClick={()=>go('taster')} className="btn btn-primary" style={{fontSize:16}}>Get My Free Taster!</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function LibraryPage({go}){
+  return (
+    <div style={{position:'relative',zIndex:1,maxWidth:1200,margin:'0 auto',padding:'60px 24px 80px'}}>
+      <h1 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(36px,6vw,56px)',textAlign:'center',color:'white',marginBottom:8}}>Mission Packs</h1>
+      <p style={{textAlign:'center',color:'var(--muted)',marginBottom:48,fontSize:18}}>Nine career missions and counting. More launching every month.</p>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:24}}>
+        {MISSIONS.map(m=>(
+          <div key={m.id} style={{background:'var(--card)',border:'2px solid '+(m.live?m.accent:'var(--border)'),borderRadius:20,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+            <div style={{background:`linear-gradient(135deg, ${m.accent}33, ${m.accent}11)`,padding:'20px 24px',borderBottom:`1px dashed ${m.accent}66`}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:12,color:'var(--muted)',letterSpacing:2}}>{m.number}</div>
+                <div style={{background:'rgba(244,208,63,0.15)',border:'1px solid rgba(244,208,63,0.4)',color:'var(--yellow)',borderRadius:50,padding:'4px 14px',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11}}>{m.level}</div>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginTop:12}}>
+                <span style={{fontSize:36}}>{m.icon}</span>
+                {m.live&&<span style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:22,color:'white'}}>{m.price}</span>}
+              </div>
+            </div>
+            <div style={{padding:24,flex:1,display:'flex',flexDirection:'column'}}>
+              <h3 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:22,color:'white',marginBottom:10}}>{m.career}</h3>
+              <p style={{fontSize:14,color:'var(--muted)',marginBottom:16,flex:1}}>{m.blurb}</p>
+              <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:20}}>
+                {m.ranks.map((r,i)=>(<span key={i} style={{fontSize:11,color:i===0?m.accent:'var(--muted)',border:'1px solid '+(i===0?m.accent:'var(--border)'),borderRadius:50,padding:'3px 10px',fontWeight:600}}>{r}</span>))}
+              </div>
+              {m.live?(<button onClick={()=>go('purchase',m.id)} className="btn btn-primary" style={{width:'100%',justifyContent:'center'}}>Unlock this Adventure</button>):(<div style={{textAlign:'center',padding:'14px',border:'1px solid var(--border)',borderRadius:50,color:'var(--muted)',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14}}>Coming Soon</div>)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CertificatePage(){
+  const [name,setName]=useState('');
+  const [missionId,setMissionId]=useState('001');
+  const [generated,setGenerated]=useState(false);
+  const [date,setDate]=useState('');
+  const mission=MISSIONS.find(m=>m.id===missionId)||MISSIONS[0];
+  const rank=mission.ranks[0];
+  const labelStyle={display:'block',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14,color:'var(--sky)',marginBottom:8,textAlign:'left'};
+  const inputStyle={width:'100%',background:'rgba(255,255,255,0.06)',border:'2px solid var(--border)',borderRadius:12,padding:'14px 18px',color:'white',fontFamily:'Open Sans,sans-serif',fontSize:15,outline:'none'};
+  const generate=()=>{const d=new Date();const months=['January','February','March','April','May','June','July','August','September','October','November','December'];setDate(`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`);setGenerated(true);};
+  return (
+    <div style={{position:'relative',zIndex:1,maxWidth:900,margin:'0 auto',padding:'60px 24px 80px'}}>
+      {!generated?(
+        <div style={{textAlign:'center'}}>
+          <h1 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(32px,5vw,48px)',color:'white',marginBottom:12}}>Claim Your Certificate</h1>
+          <p style={{color:'var(--muted)',marginBottom:40}}>No login needed. Pick your mission, type your name and print.</p>
+          <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:20,padding:32,maxWidth:460,margin:'0 auto'}}>
+            <label style={labelStyle}>Choose your mission</label>
+            <select value={missionId} onChange={e=>setMissionId(e.target.value)} style={inputStyle}>
+              {MISSIONS.filter(m=>m.live).map(m=>(<option key={m.id} value={m.id}>{m.career}</option>))}
+            </select>
+            <label style={{...labelStyle,marginTop:20}}>Your name</label>
+            <input value={name} onChange={e=>setName(e.target.value)} placeholder="Type your name here..." style={inputStyle}/>
+            <button onClick={generate} disabled={!name.trim()} className="btn btn-primary" style={{width:'100%',justifyContent:'center',marginTop:24,opacity:name.trim()?1:0.5}}>Generate My Certificate 🏆</button>
+          </div>
+        </div>
+      ):(
+        <>
+          <div className="cert-print" style={{background:'white',color:'#1F3A5F',borderRadius:4,padding:'48px 40px',border:'3px solid #1F3A5F',maxWidth:700,margin:'0 auto',position:'relative',textAlign:'center'}}>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,letterSpacing:4,fontSize:12,color:'#B8860B',marginBottom:24}}>THE TRAVEL LAB ACADEMY</div>
+            <img src={LOGO} alt="Travel Lab" style={{width:'100%',maxWidth:280,objectFit:'contain',marginBottom:20}}/>
+            <div style={{fontSize:20,color:'#1F3A5F',marginBottom:8}}>✦</div>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,letterSpacing:3,fontSize:13,color:'#1F3A5F',marginBottom:6}}>CERTIFICATE OF ACHIEVEMENT</div>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:32,color:'#1F3A5F',marginBottom:16}}>OFFICIAL AWARD</div>
+            <div style={{display:'inline-block',border:'2px solid #1A8FE3',borderRadius:50,padding:'6px 20px',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:12,letterSpacing:1,color:'#1A8FE3',marginBottom:24}}>{mission.level.toUpperCase()} LEVEL</div>
+            <div style={{color:'#555',marginBottom:8}}>This is to certify that</div>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:36,color:'#1F3A5F',borderBottom:'3px solid #1F3A5F',display:'inline-block',padding:'0 40px 8px',marginBottom:20}}>{name}</div>
+            <div style={{color:'#555',marginBottom:6}}>has successfully completed</div>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:26,color:'#1F3A5F'}}>{mission.career}</div>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,letterSpacing:3,color:'#E91E8C',fontSize:13,marginBottom:24}}>{mission.number}</div>
+            <div style={{display:'inline-block',border:'2px solid #F4D03F',borderRadius:12,padding:'16px 32px',marginBottom:32}}>
+              <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,letterSpacing:2,color:'#888',marginBottom:4}}>EXPLORER TITLE ACHIEVED</div>
+              <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:22,color:'#1F3A5F'}}>{rank}</div>
+            </div>
+            <div style={{borderTop:'1px dotted #ccc',paddingTop:24,display:'flex',justifyContent:'space-around',alignItems:'flex-start'}}>
+              <div><div style={{fontFamily:'Georgia,serif',fontSize:18,color:'#1F3A5F',borderBottom:'1px solid #1F3A5F',paddingBottom:4}}>{date}</div><div style={{fontSize:11,color:'#888',marginTop:4}}>Date Completed</div></div>
+              <div><div style={{fontFamily:'Georgia,serif',fontStyle:'italic',fontSize:22,color:'#1F3A5F',borderBottom:'1px solid #1F3A5F',paddingBottom:4}}>The Travel Lab Academy</div><div style={{fontSize:11,color:'#888',marginTop:4}}>Authorised by</div></div>
+            </div>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontStyle:'italic',letterSpacing:3,color:'#E91E8C',fontSize:16,marginTop:24}}>Dream Discover Become</div>
+          </div>
+          <div style={{textAlign:'center',marginTop:32,display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}} className="no-print">
+            <button onClick={()=>window.print()} className="btn btn-secondary">🖨️ Print Certificate</button>
+            <button onClick={()=>setGenerated(false)} className="btn btn-outline">Make Another</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function TasterPage({go}){
+  const [done,setDone]=useState(false);
+  const [name,setName]=useState('');
+  const [email,setEmail]=useState('');
+  const inputStyle={width:'100%',background:'rgba(255,255,255,0.06)',border:'2px solid var(--border)',borderRadius:50,padding:'14px 24px',color:'white',fontFamily:'Open Sans,sans-serif',fontSize:15,outline:'none'};
+  return (
+    <div style={{position:'relative',zIndex:1,maxWidth:640,margin:'0 auto',padding:'60px 24px 80px',textAlign:'center'}}>
+      <div style={{fontSize:48,marginBottom:16}}>🎯</div>
+      <h1 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(28px,5vw,40px)',color:'white',marginBottom:12}}>Try a Free Taster Challenge</h1>
+      <p style={{color:'var(--muted)',marginBottom:36}}>Get a free mini challenge from Mission 001 straight to your inbox. No commitment. <strong style={{color:'var(--yellow)'}}>No spam, ever.</strong></p>
+      {!done?(
+        <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:20,padding:32}}>
+          <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={inputStyle}/>
+          <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Your email address" type="email" style={{...inputStyle,marginTop:14}}/>
+          <button onClick={()=>name.trim()&&email.trim()&&setDone(true)} className="btn btn-primary" style={{width:'100%',justifyContent:'center',marginTop:24}}>Get My Free Taster!</button>
+          <p style={{fontSize:12,color:'var(--muted)',marginTop:16}}>(Email delivery connects to your mailing list. For now this confirms the signup.)</p>
+        </div>
+      ):(
+        <div style={{background:'rgba(46,204,113,0.1)',border:'1px solid rgba(46,204,113,0.4)',borderRadius:20,padding:40}}>
+          <div style={{fontSize:48,marginBottom:16}}>🎉</div>
+          <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:24,color:'white',marginBottom:12}}>You are on the list!</h2>
+          <p style={{color:'var(--muted)',marginBottom:24}}>Your free taster challenge is on its way. While you wait, why not explore the full mission?</p>
+          <button onClick={()=>go('missions')} className="btn btn-secondary">Explore Missions</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PurchasePage({id,go}){
+  const mission=MISSIONS.find(m=>m.id===id);
+  if(!mission) return <div style={{padding:80,textAlign:'center'}}>Mission not found.</div>;
+  const included=['9 unique challenges',`Rank progression: ${mission.ranks.join(', ')}`,'Mission Complete XP boxes','Real World Mission','Interactive learning panels','Certificate of Achievement','Printer friendly version'];
+  return (
+    <div style={{position:'relative',zIndex:1,maxWidth:760,margin:'0 auto',padding:'60px 24px 80px'}}>
+      <div style={{background:`linear-gradient(135deg, ${mission.accent}, ${mission.accent}cc)`,borderRadius:20,padding:32,marginBottom:24}}>
+        <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:12,color:'rgba(255,255,255,0.8)',letterSpacing:2}}>{mission.number}</div>
+        <div style={{display:'flex',alignItems:'center',gap:16,marginTop:8}}>
+          <span style={{fontSize:44}}>{mission.icon}</span>
+          <div><h1 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:32,color:'white'}}>{mission.career}</h1><p style={{color:'rgba(255,255,255,0.9)'}}>{mission.blurb}</p></div>
+        </div>
+      </div>
+      <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:20,padding:32}}>
+        <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:20,color:'white',marginBottom:16}}>What is included:</h2>
+        {included.map((it,i)=>(<div key={i} style={{display:'flex',gap:10,marginBottom:10,color:'var(--text)'}}><span style={{color:mission.accent,fontWeight:700}}>✓</span> {it}</div>))}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:28,paddingTop:24,borderTop:'1px solid var(--border)',flexWrap:'wrap',gap:16}}>
+          <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:32,color:'white'}}>{mission.price}</div>
+          <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+            <button onClick={()=>go('mission001')} className="btn btn-secondary">Preview the Mission</button>
+            <a href="https://www.thetravellab.co.uk/" target="_blank" rel="noreferrer" className="btn btn-primary">Buy Now {mission.price}</a>
+          </div>
+        </div>
+        <p style={{fontSize:12,color:'var(--muted)',marginTop:16}}>(Buy Now links to your payment page. Connect a Stripe Payment Link here when ready.)</p>
+      </div>
+    </div>
+  );
+}
+
+function MissionControlPage({go}){
+  return (
+    <div style={{position:'relative',zIndex:1,maxWidth:1000,margin:'0 auto',padding:'60px 24px 80px'}}>
+      <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:12,color:'var(--sky)',letterSpacing:3,textAlign:'center'}}>YOUR PROGRESSION</div>
+      <h1 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(32px,5vw,48px)',color:'white',textAlign:'center',marginBottom:40}}>Mission Control</h1>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:16}}>
+        {MISSIONS.map(m=>(
+          <div key={m.id} style={{background:'var(--card)',border:'2px solid '+(m.live?m.accent:'var(--border)'),borderRadius:16,padding:24,textAlign:'center',opacity:m.live?1:0.55}}>
+            <div style={{fontSize:40,marginBottom:10}}>{m.live?m.icon:'🔒'}</div>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:15,color:'white',marginBottom:4}}>{m.career}</div>
+            <div style={{fontSize:12,color:'var(--muted)'}}>{m.live?'Available now':'Coming soon'}</div>
+            {m.live&&<span onClick={()=>go('mission001')} style={{display:'inline-block',marginTop:12,color:m.accent,fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:13,cursor:'pointer'}}>Open →</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AboutPage(){
+  return (
+    <div style={{position:'relative',zIndex:1,maxWidth:760,margin:'0 auto',padding:'60px 24px 80px'}}>
+      <h1 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(32px,5vw,48px)',color:'white',textAlign:'center',marginBottom:8}}>About The Travel Lab</h1>
+      <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontStyle:'italic',letterSpacing:3,color:'var(--magenta)',textAlign:'center',marginBottom:40}}>Dream Discover Become</div>
+      <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:20,padding:32,marginBottom:24}}>
+        <p style={{marginBottom:16}}>The Travel Lab turns every holiday, day trip and adventure into an epic mission. Instead of screens and boredom, children explore real careers, design and invent, and discover who they could become.</p>
+        <p style={{marginBottom:16}}>Each mission pack is built around a real career. Children complete genuine design challenges, earn XP, climb through ranks and finish with a Certificate of Achievement they can print and be proud of. Learning happens naturally, disguised as exploration.</p>
+        <p>Every pack is designed to be inclusive, with a My Way panel offering dyslexia friendly fonts, high contrast and larger text so every explorer can take part their way.</p>
+      </div>
+      <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:24,color:'white',textAlign:'center',margin:'32px 0 20px'}}>The Three Levels</h2>
+      <div style={{display:'grid',gap:12}}>
+        {LEVELS.map(l=>(<div key={l.id} style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:14,padding:20,display:'flex',gap:16,alignItems:'center'}}><span style={{fontSize:32}}>{l.icon}</span><div><div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,color:'white'}}>{l.name} <span style={{color:l.accent,fontWeight:700,fontSize:13}}>· {l.ages}</span></div><div style={{fontSize:14,color:'var(--muted)'}}>{l.blurb}</div></div></div>))}
+      </div>
+      <p style={{textAlign:'center',color:'var(--muted)',marginTop:40,fontSize:14}}>The Travel Lab is created by C442 Apps.</p>
+    </div>
+  );
+}
+
+function Mission001Page({go}){
+  const [complete,setComplete]=useState(false);
+  const panelTitles={
+    transport:['💡 TRANSPORT IDEAS, TAP TO EXPLORE','Tap any transport type to see how it works in real life!'],
+    bridge:['💡 BRIDGE IDEAS, TAP TO LEARN','Tap any bridge type to see a real example and learn how it works!'],
+    airport:['💡 AMAZING AIRPORTS, TAP TO EXPLORE','Tap each airport to discover what makes it extraordinary!'],
+    hotel:['💡 INCREDIBLE HOTELS, TAP TO EXPLORE','Real hotels that are almost too incredible to believe!'],
+    park:['💡 LEGENDARY THEME PARKS, TAP TO EXPLORE',"The world's most incredible parks, what makes each one special?"],
+    invention:['💡 INVENTIONS THAT CHANGED THE WORLD, TAP TO EXPLORE',"Every one of these started as someone's wild idea. Just like yours!"],
+    city:['💡 FUTURE CITIES BEING BUILT RIGHT NOW, TAP TO EXPLORE',"These real cities are showing the world what the future looks like!"]
+  };
+  if(complete){
+    return (
+      <div style={{position:'relative',zIndex:1,minHeight:'80vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center',padding:'60px 24px'}}>
+        <div style={{fontSize:80,marginBottom:24}}>🎉</div>
+        <h1 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(32px,7vw,64px)',background:'linear-gradient(135deg,var(--yellow),var(--magenta))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',marginBottom:12}}>YOU DID IT, EXPLORER!</h1>
+        <p style={{fontSize:18,color:'var(--muted)',marginBottom:40}}>Mission 001: AJ Future Cities, Complete!</p>
+        <div style={{background:'rgba(26,143,227,0.12)',border:'3px solid var(--blue)',borderRadius:20,padding:'28px 48px',marginBottom:40}}>
+          <div style={{fontSize:56,marginBottom:10}}>🏗️</div>
+          <div style={{fontFamily:'Montserrat,sans-serif',fontSize:12,color:'var(--muted)',letterSpacing:2}}>BADGE EARNED</div>
+          <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:22,color:'var(--yellow)'}}>Junior Future Architect</div>
+        </div>
+        <div style={{display:'flex',gap:12,flexWrap:'wrap',justifyContent:'center'}}>
+          <button onClick={()=>go('certificate')} className="btn" style={{background:'linear-gradient(135deg,#F4D03F,#FFB800)',color:'#1F3A5F'}}>🏆 Claim My Certificate</button>
+          <button onClick={()=>window.print()} className="btn btn-secondary">🖨️ Print My Pack</button>
+          <button onClick={()=>setComplete(false)} className="btn btn-outline">Back to My Mission</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={{position:'relative',zIndex:1,maxWidth:820,margin:'0 auto',padding:'24px 20px 80px'}}>
+      <div className="no-print" style={{display:'flex',justifyContent:'flex-end',gap:10,marginBottom:20,flexWrap:'wrap'}}>
+        <button onClick={()=>window.print()} className="btn btn-secondary" style={{padding:'8px 16px',fontSize:13}}>🖨️ Print</button>
+        <button onClick={()=>{setComplete(true);window.scrollTo(0,0);}} className="btn btn-primary" style={{padding:'8px 16px',fontSize:13}}>Complete 🏆</button>
+      </div>
+      <div style={{textAlign:'center',padding:'40px 20px 30px'}}>
+        <div style={{display:'inline-block',background:'linear-gradient(135deg,var(--magenta),#FF6BB3)',borderRadius:50,padding:'8px 24px',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:12,letterSpacing:2,color:'white',marginBottom:24}}>✈️ TRAVEL LAB ACADEMY</div>
+        <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:13,color:'var(--sky)',letterSpacing:3,marginBottom:8}}>MISSION 001</div>
+        <h1 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(38px,8vw,72px)',background:'linear-gradient(135deg,#fff,var(--sky))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',lineHeight:1}}>Future Architect</h1>
+        <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'clamp(16px,3vw,22px)',color:'var(--magenta)',letterSpacing:3,marginTop:8}}>AJ Future Cities</div>
+        <div style={{margin:'32px auto',maxWidth:340}}>
+          <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,color:'white',fontSize:15,marginBottom:8}}>Explorer Name</div>
+          <input placeholder="Type your name here..." style={{background:'rgba(255,255,255,0.08)',border:'2px solid var(--border)',borderRadius:50,padding:'14px 28px',color:'white',fontFamily:'Open Sans,sans-serif',fontSize:16,outline:'none',textAlign:'center',width:'100%'}}/>
+        </div>
+      </div>
+      <div style={{padding:'24px 0'}}>
+        <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,color:'var(--sky)',letterSpacing:3,marginBottom:4}}>YOUR PROGRESSION</div>
+        <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(24px,4vw,36px)',color:'white',marginBottom:20}}>Architect Ranks</h2>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:12}}>
+          {RANKS.map((r,i)=>(<div key={i} style={{background:'var(--card)',border:'2px solid '+(i===0?'var(--blue)':'var(--border)'),borderRadius:16,padding:'16px 12px',textAlign:'center'}}><div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,color:'var(--sky)',letterSpacing:2,marginBottom:6}}>{r.rank}</div><div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:13,color:'white',marginBottom:6}}>{r.name}</div><div style={{fontSize:11,color:'var(--muted)',fontStyle:'italic',marginBottom:10}}>{r.req}</div><label style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,color:'var(--blue)',cursor:'pointer'}}><input type="checkbox" style={{accentColor:'var(--blue)',marginRight:4}}/> Unlocked!</label></div>))}
+        </div>
+      </div>
+      <div style={{background:'var(--card)',border:'2px solid var(--border)',borderRadius:16,padding:24,marginBottom:32}}>
+        <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14,color:'var(--sky)',letterSpacing:2,marginBottom:16}}>XP TRACKER</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:10}}>
+          {XP_ROWS.map((r,i)=>(<div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,0.04)',borderRadius:10,padding:'10px 14px',gap:8}}><span style={{fontSize:13,color:'var(--text)',fontWeight:600}}>{r}</span><input placeholder="XP" type="number" style={{background:'rgba(255,255,255,0.08)',border:'1px solid var(--border)',borderRadius:20,padding:'4px 12px',color:'white',width:70,textAlign:'center',outline:'none',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:13}}/></div>))}
+        </div>
+      </div>
+      {CHALLENGES.map(ch=>(
+        <div key={ch.n} style={{background:'var(--card)',border:'2px solid var(--border)',borderRadius:20,padding:32,marginBottom:28,position:'relative',overflow:'hidden'}}>
+          <div style={{position:'absolute',top:0,left:0,right:0,height:4,background:'linear-gradient(90deg,var(--blue),var(--magenta))'}}/>
+          <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:20,flexWrap:'wrap'}}>
+            <div style={{background:'linear-gradient(135deg,var(--blue),var(--sky))',color:'white',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,letterSpacing:2,padding:'6px 14px',borderRadius:50}}>CHALLENGE {ch.n}</div>
+            <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(18px,3vw,24px)',color:'white'}}>{ch.icon} {ch.title}</div>
+          </div>
+          <p style={{color:'var(--muted)',fontSize:15,marginBottom:24}}>{ch.intro}</p>
+          {ch.panel&&<InfoPanel category={ch.panel} title={panelTitles[ch.panel][0]} subtitle={panelTitles[ch.panel][1]}/>}
+          {ch.spotter&&<Spotter items={ch.spotter}/>}
+          {ch.cityChecklist&&(<><p style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14,color:'var(--sky)',marginBottom:12}}>Make sure your city has all of these!</p><Spotter items={ch.cityChecklist}/></>)}
+          {ch.fields.length>0&&(<div style={{display:'grid',gridTemplateColumns:ch.fields.some(f=>!f.wide)?'repeat(auto-fit,minmax(240px,1fr))':'1fr',gap:16,marginBottom:20}}>{ch.fields.map((f,i)=><Field key={i} f={f}/>)}</div>)}
+          <div style={{marginBottom:20}}><span style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14,color:'var(--magenta)',marginBottom:10,display:'block'}}>{ch.draw}</span><DrawCanvas height={ch.n===9?420:300}/></div>
+          <CompleteBox/>
+        </div>
+      ))}
+      <div style={{background:'var(--card)',border:'2px solid rgba(233,30,140,0.3)',borderRadius:20,padding:32,marginBottom:28,position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:0,left:0,right:0,height:4,background:'linear-gradient(90deg,var(--magenta),#FF6BB3)'}}/>
+        <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:20,flexWrap:'wrap'}}>
+          <div style={{background:'linear-gradient(135deg,var(--magenta),#FF6BB3)',color:'white',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,letterSpacing:2,padding:'6px 14px',borderRadius:50}}>REAL WORLD MISSION</div>
+          <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(18px,3vw,24px)',color:'white'}}>{REAL_WORLD.icon} {REAL_WORLD.title}</div>
+        </div>
+        <p style={{color:'var(--muted)',marginBottom:16}}>{REAL_WORLD.intro}</p>
+        <p style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14,color:'var(--magenta)',marginBottom:12}}>At the Airport</p>
+        <Spotter items={REAL_WORLD.airport}/>
+        <p style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14,color:'var(--magenta)',margin:'16px 0 12px'}}>In the City</p>
+        <Spotter items={REAL_WORLD.city}/>
+        <div style={{marginTop:20}}><Field f={REAL_WORLD.field}/></div>
+        <div><span style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:14,color:'var(--magenta)',marginBottom:10,display:'block'}}>{REAL_WORLD.draw}</span><DrawCanvas height={280}/></div>
+        <CompleteBox/>
+      </div>
+      <div style={{textAlign:'center',padding:'40px 0'}} className="no-print">
+        <button onClick={()=>{setComplete(true);window.scrollTo(0,0);}} className="btn btn-primary" style={{fontSize:18,padding:'18px 48px'}}>🏆 I Have Completed My Mission!</button>
+      </div>
+    </div>
+  );
+}
+
+// ===== ROUTER / APP =====
+function App(){
+  const [page,setPage]=useState('home');
+  const [param,setParam]=useState(null);
+  const go=(p,x=null)=>{setPage(p);setParam(x);window.scrollTo(0,0);};
+  let content;
+  if(page==='home') content=<HomePage go={go}/>;
+  else if(page==='missions') content=<LibraryPage go={go}/>;
+  else if(page==='certificate') content=<CertificatePage/>;
+  else if(page==='taster') content=<TasterPage go={go}/>;
+  else if(page==='purchase') content=<PurchasePage id={param} go={go}/>;
+  else if(page==='control') content=<MissionControlPage go={go}/>;
+  else if(page==='about') content=<AboutPage/>;
+  else if(page==='mission001') content=<Mission001Page go={go}/>;
+  else content=<HomePage go={go}/>;
+  return (
+    <>
+      <FloatingEmojis/>
+      <NavBar go={go}/>
+      <main style={{position:'relative',zIndex:1,minHeight:'70vh'}}>{content}</main>
+      <Footer go={go}/>
+      <MyWay/>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+
+</script>
+</body>
+</html>
