@@ -33,9 +33,26 @@ select option{background:#1F3A5F;color:white}
 body.ttl-calm *{animation:none !important;transition:none !important;}
 @keyframes lbFloat{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-30px) rotate(6deg)}}
 @media print{
+  @page{margin:1.2cm}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:white !important}
-  .no-print,nav,.app-footer,.myway-btn{display:none !important}
-  .cert-print{border:3px solid #1F3A5F !important;box-shadow:none !important}
+  /* hide all screen-only furniture */
+  .no-print,nav,.app-footer,.myway-btn,.myway-panel{display:none !important}
+  /* kill floating emojis and decorative backgrounds when printing */
+  [class*="floater"],canvas{break-inside:avoid}
+  /* CERTIFICATE: fit on one page */
+  .cert-print{border:3px solid #1F3A5F !important;box-shadow:none !important;page-break-inside:avoid;break-inside:avoid;max-width:100% !important;margin:0 auto !important}
+  .cert-preview{display:none !important}
+  .cert-wrap{padding:0 !important}
+  /* PRINTABLE CHALLENGES: clean black-on-white worksheet */
+  .print-sheet{background:white !important;color:#000 !important;min-height:auto !important}
+  .print-sheet *{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}
+  .print-sheet h1,.print-sheet h2,.print-sheet h3{color:#000 !important;-webkit-text-fill-color:#000 !important}
+  .print-sheet .card-print{border:1.5px solid #333 !important;border-radius:8px !important;page-break-inside:avoid;break-inside:avoid;margin-bottom:14px !important}
+  .print-sheet canvas{border:1.5px dashed #999 !important;background:white !important}
+  .print-sheet .sticky-bar{display:none !important}
+  .print-sheet .unlock-card{display:none !important}
+  .print-sheet button{display:none !important}
 }
 </style>
 </head>
@@ -732,7 +749,7 @@ function PurchasePage({id,go}){
     </div>
   );
 }
-function CertificatePage(){
+function CertificatePage({go}){
   const [name,setName]=useState('');
   const [missionId,setMissionId]=useState('001');
   const [generated,setGenerated]=useState(false);
@@ -760,7 +777,8 @@ function CertificatePage(){
         </div>
       ):(
         <>
-          <div className="cert-print" style={{background:'white',color:'#1F3A5F',borderRadius:4,padding:'48px 40px',border:'3px solid #1F3A5F',maxWidth:700,margin:'0 auto',position:'relative',textAlign:'center'}}>
+          <div className={PAID?"cert-print":"cert-print cert-preview"} style={{background:'white',color:'#1F3A5F',borderRadius:4,padding:'48px 40px',border:'3px solid #1F3A5F',maxWidth:700,margin:'0 auto',position:'relative',textAlign:'center'}}>
+            {!PAID&&<div aria-hidden="true" style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',zIndex:5,overflow:'hidden'}}><span style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:90,color:'rgba(31,58,95,0.10)',transform:'rotate(-30deg)',letterSpacing:8,whiteSpace:'nowrap'}}>PREVIEW</span></div>}
             <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,letterSpacing:4,fontSize:12,color:'#B8860B',marginBottom:24}}>THE TRAVEL LAB ACADEMY</div>
             <img src={LOGO} alt="Travel Lab" style={{width:'100%',maxWidth:280,objectFit:'contain',marginBottom:20}}/>
             <div style={{fontSize:20,color:'#1F3A5F',marginBottom:8}}>✦</div>
@@ -789,8 +807,17 @@ function CertificatePage(){
             </div>
           </div>
           <div style={{textAlign:'center',marginTop:32,display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}} className="no-print">
+            {PAID?(<>
             <button onClick={()=>window.print()} className="btn btn-secondary">🖨️ Print Certificate</button>
             <button onClick={()=>setGenerated(false)} className="btn btn-outline">Make Another</button>
+            </>):(<>
+            <div style={{background:'var(--card)',border:'2px solid var(--magenta)',borderRadius:16,padding:'20px 24px',maxWidth:460}}>
+              <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:16,color:'white',marginBottom:6}}>🔒 This is a preview</div>
+              <p style={{color:'var(--muted)',fontSize:14,marginBottom:16}}>The printable, downloadable certificate unlocks when you buy this pack.</p>
+              <button onClick={()=>go('purchase',mission.id)} className="btn btn-primary" style={{justifyContent:'center'}}>Unlock to Download</button>
+              <button onClick={()=>setGenerated(false)} className="btn btn-outline" style={{justifyContent:'center',marginTop:10}}>Make Another Preview</button>
+            </div>
+            </>)}
           </div>
         </>
       )}
@@ -881,7 +908,7 @@ function Mission001Page({go}){
     );
   }
   return (
-    <div style={{position:'relative',zIndex:1,maxWidth:820,margin:'0 auto',padding:'24px 20px 80px'}}>
+    <div className="print-sheet" style={{position:'relative',zIndex:1,maxWidth:820,margin:'0 auto',padding:'24px 20px 80px'}}>
       <div className="no-print" style={{display:'flex',justifyContent:'flex-end',gap:10,marginBottom:20,flexWrap:'wrap'}}>
         <button onClick={()=>window.print()} className="btn btn-secondary" style={{padding:'8px 16px',fontSize:13}}>🖨️ Print</button>
         <button onClick={()=>{setComplete(true);window.scrollTo(0,0);}} className="btn btn-primary" style={{padding:'8px 16px',fontSize:13}}>Complete 🏆</button>
@@ -903,7 +930,7 @@ function Mission001Page({go}){
           {RANKS.map((r,i)=>(<div key={i} style={{background:'var(--card)',border:'2px solid '+(i===0?'var(--blue)':'var(--border)'),borderRadius:16,padding:'16px 12px',textAlign:'center'}}><div style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,color:'var(--sky)',letterSpacing:2,marginBottom:6}}>{r.rank}</div><div style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:13,color:'white',marginBottom:6}}>{r.name}</div><div style={{fontSize:11,color:'var(--muted)',fontStyle:'italic',marginBottom:10}}>{r.req}</div><label style={{fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:11,color:'var(--blue)',cursor:'pointer'}}><input type="checkbox" style={{accentColor:'var(--blue)',marginRight:4}}/> Unlocked!</label></div>))}
         </div>
       </div>
-      <div style={{position:'sticky',top:8,zIndex:50,background:'linear-gradient(135deg,var(--blue),var(--magenta))',borderRadius:scrolled?50:16,padding:scrolled?'8px 18px':'16px 22px',marginBottom:32,boxShadow:'0 4px 16px rgba(0,0,0,0.3)',display:'flex',alignItems:'center',justifyContent:scrolled?'center':'space-between',gap:12,flexWrap:'wrap',width:scrolled?'auto':'100%',marginLeft:scrolled?'auto':0,marginRight:scrolled?'auto':0,transition:'all .3s ease'}}>
+      <div className="sticky-bar no-print" style={{position:'sticky',top:8,zIndex:50,background:'linear-gradient(135deg,var(--blue),var(--magenta))',borderRadius:scrolled?50:16,padding:scrolled?'8px 18px':'16px 22px',marginBottom:32,boxShadow:'0 4px 16px rgba(0,0,0,0.3)',display:'flex',alignItems:'center',justifyContent:scrolled?'center':'space-between',gap:12,flexWrap:'wrap',width:scrolled?'auto':'100%',marginLeft:scrolled?'auto':0,marginRight:scrolled?'auto':0,transition:'all .3s ease'}}>
         {scrolled?(
           <div style={{display:'flex',alignItems:'center',gap:8}}>
             <span style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:18,color:'#fff'}}>{'\u26A1'} {xp} XP</span>
@@ -938,7 +965,7 @@ function Mission001Page({go}){
       ))}
 
       {!PAID&&(
-      <div style={{background:'linear-gradient(135deg,rgba(233,30,140,0.12),rgba(26,143,227,0.12))',border:'2px solid var(--magenta)',borderRadius:24,padding:'48px 32px',marginBottom:28,textAlign:'center'}}>
+      <div className="no-print" style={{background:'linear-gradient(135deg,rgba(233,30,140,0.12),rgba(26,143,227,0.12))',border:'2px solid var(--magenta)',borderRadius:24,padding:'48px 32px',marginBottom:28,textAlign:'center'}}>
         <div style={{fontSize:48,marginBottom:16}}>{'\uD83D\uDD13'}</div>
         <div style={{display:'inline-block',marginBottom:12}}><FounderBadge/></div>
         <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(24px,4vw,34px)',color:'white',marginBottom:12}}>You have finished the free taster!</h2>
@@ -1077,7 +1104,7 @@ function LittleBuilderPage({go}){
   const rank=[...LB_RANKS].reverse().find(r=>stars>=r.at)||LB_RANKS[0];
   const visible=LB_CHALLENGES.filter(c=>PAID||c.n<=2);
   return (
-    <div style={{background:'linear-gradient(160deg,#FFE9C7 0%,'+LB.sand+' 50%)',minHeight:'100vh',position:'relative',zIndex:1}}>
+    <div className="print-sheet" style={{background:'linear-gradient(160deg,#FFE9C7 0%,'+LB.sand+' 50%)',minHeight:'100vh',position:'relative',zIndex:1}}>
       <LBFloaters/>
       <div style={{maxWidth:720,margin:'0 auto',padding:'24px 18px 80px',position:'relative',zIndex:1}}>
         <div className="no-print" style={{display:'flex',justifyContent:'flex-end',marginBottom:14}}>
@@ -1091,7 +1118,7 @@ function LittleBuilderPage({go}){
           <div style={{fontFamily:'Montserrat,sans-serif',fontWeight:800,fontSize:'clamp(17px,4vw,22px)',color:LB.coralDeep,letterSpacing:1,marginTop:6}}>Future Architect</div>
         </div>
 
-        <div style={{position:'sticky',top:8,zIndex:50,background:'linear-gradient(135deg,'+LB.teal+','+LB.tealDeep+')',borderRadius:scrolled?50:16,padding:scrolled?'8px 16px':'10px 16px',marginBottom:22,boxShadow:'0 4px 14px rgba(43,74,74,0.25)',display:'flex',alignItems:'center',justifyContent:scrolled?'center':'space-between',gap:12,flexWrap:'wrap',width:scrolled?'auto':'100%',marginLeft:scrolled?'auto':0,marginRight:scrolled?'auto':0,transition:'all .3s ease'}}>
+        <div className="sticky-bar no-print" style={{position:'sticky',top:8,zIndex:50,background:'linear-gradient(135deg,'+LB.teal+','+LB.tealDeep+')',borderRadius:scrolled?50:16,padding:scrolled?'8px 16px':'10px 16px',marginBottom:22,boxShadow:'0 4px 14px rgba(43,74,74,0.25)',display:'flex',alignItems:'center',justifyContent:scrolled?'center':'space-between',gap:12,flexWrap:'wrap',width:scrolled?'auto':'100%',marginLeft:scrolled?'auto':0,marginRight:scrolled?'auto':0,transition:'all .3s ease'}}>
           {scrolled?(
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               <span style={{fontSize:22}}>{rank.emoji}</span>
@@ -1118,7 +1145,7 @@ function LittleBuilderPage({go}){
         {visible.map(c=>(<LBChallenge key={c.n} c={c} onDone={add}/>))}
 
         {!PAID&&(
-        <div style={{background:LB.card,border:'3px solid '+LB.coral,borderRadius:24,padding:'40px 26px',textAlign:'center',boxShadow:'0 6px 18px rgba(43,74,74,0.12)'}}>
+        <div className="no-print" style={{background:LB.card,border:'3px solid '+LB.coral,borderRadius:24,padding:'40px 26px',textAlign:'center',boxShadow:'0 6px 18px rgba(43,74,74,0.12)'}}>
           <div style={{fontSize:50,marginBottom:12}}>{'\uD83C\uDF1F'}</div>
           <div style={{display:'inline-block',background:'linear-gradient(135deg,'+LB.sun+',#FFB800)',color:LB.tealDeep,fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:11,letterSpacing:1,padding:'5px 14px',borderRadius:50,marginBottom:14}}>{'\u2728'} FOUNDER MEMBER {'\u00B7'} FIRST 100</div>
           <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(24px,5vw,32px)',color:LB.tealDeep,marginBottom:12}}>You tried the free taster!</h2>
@@ -1241,7 +1268,7 @@ function PrincipalArchitectPage({go}){
   const visible=PA_CHALLENGES.filter(c=>PAID||c.n<=2);
   const pct=Math.min(100,Math.round(xp/900*100));
   return (
-    <div style={{background:PA.bg,minHeight:'100vh',position:'relative',zIndex:1}}>
+    <div className="print-sheet" style={{background:PA.bg,minHeight:'100vh',position:'relative',zIndex:1}}>
       <div style={{maxWidth:760,margin:'0 auto',padding:'24px 20px 80px'}}>
         <div className="no-print" style={{display:'flex',justifyContent:'flex-end',marginBottom:14}}>
           <button onClick={()=>window.print()} style={{background:'transparent',color:PA.inkSoft,border:'2px solid '+PA.line,borderRadius:30,padding:'8px 16px',fontFamily:'Montserrat,sans-serif',fontWeight:800,fontSize:13,cursor:'pointer'}}>{'\uD83D\uDDA8\uFE0F'} Print</button>
@@ -1254,7 +1281,7 @@ function PrincipalArchitectPage({go}){
           <p style={{color:PA.inkSoft,fontSize:15,maxWidth:520,margin:'14px auto 0'}}>Nine real architectural challenges. Write, design, decide and defend, then rate your own work like a professional in a design review.</p>
         </div>
 
-        <div style={{position:'sticky',top:8,zIndex:50,background:'linear-gradient(135deg,'+PA.navy+','+PA.navyDeep+')',border:'1px solid '+PA.line,borderRadius:scrolled?50:16,padding:scrolled?'8px 18px':'18px 22px',marginBottom:28,boxShadow:'0 4px 16px rgba(0,0,0,0.4)',transition:'all .3s ease',width:scrolled?'auto':'100%',marginLeft:scrolled?'auto':0,marginRight:scrolled?'auto':0,display:scrolled?'flex':'block',justifyContent:'center'}}>
+        <div className="sticky-bar no-print" style={{position:'sticky',top:8,zIndex:50,background:'linear-gradient(135deg,'+PA.navy+','+PA.navyDeep+')',border:'1px solid '+PA.line,borderRadius:scrolled?50:16,padding:scrolled?'8px 18px':'18px 22px',marginBottom:28,boxShadow:'0 4px 16px rgba(0,0,0,0.4)',transition:'all .3s ease',width:scrolled?'auto':'100%',marginLeft:scrolled?'auto':0,marginRight:scrolled?'auto':0,display:scrolled?'flex':'block',justifyContent:'center'}}>
           {scrolled?(
             <span style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:18,color:'#fff'}}>{'\u26A1'} {xp} XP {'\u00B7'} {rank.name}</span>
           ):(<>
@@ -1283,7 +1310,7 @@ function PrincipalArchitectPage({go}){
         {visible.map(c=>(<PAChallenge key={c.n} c={c} onXp={addXp}/>))}
 
         {!PAID&&(
-        <div style={{background:PA.card,border:'2px solid '+PA.magenta,borderRadius:20,padding:'44px 28px',textAlign:'center'}}>
+        <div className="no-print" style={{background:PA.card,border:'2px solid '+PA.magenta,borderRadius:20,padding:'44px 28px',textAlign:'center'}}>
           <div style={{fontSize:48,marginBottom:14}}>{'\uD83C\uDFDB\uFE0F'}</div>
           <div style={{display:'inline-block',background:'linear-gradient(135deg,'+PA.yellow+',#FFB800)',color:PA.navy,fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:11,letterSpacing:1,padding:'5px 14px',borderRadius:50,marginBottom:14}}>{'\u2728'} FOUNDER MEMBER {'\u00B7'} FIRST 100</div>
           <h2 style={{fontFamily:'Montserrat,sans-serif',fontWeight:900,fontSize:'clamp(24px,5vw,32px)',color:PA.ink,marginBottom:12}}>You have finished the free taster</h2>
@@ -1313,7 +1340,7 @@ function App(){
   let content;
   if(page==='home') content=<HomePage go={go}/>;
   else if(page==='missions') content=<LibraryPage go={go}/>;
-  else if(page==='certificate') content=<CertificatePage/>;
+  else if(page==='certificate') content=<CertificatePage go={go}/>;
   else if(page==='taster') content=<TasterPage go={go} level={param}/>;
   else if(page==='purchase') content=<PurchasePage id={param} go={go}/>;
   else if(page==='control') content=<MissionControlPage go={go}/>;
