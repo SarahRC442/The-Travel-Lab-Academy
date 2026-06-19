@@ -574,7 +574,7 @@ function LibraryPage({ go }) {
                 '\u00B7',
                 " FIRST 100 ONLY"),
             React.createElement("h2", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(24px,4vw,32px)', color: 'white', marginBottom: 10 } }, "Founder Academy Pass"),
-            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 8, maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' } }, "Be one of our first 100 founders and lock in every career we ever release, all age levels, forever. Pay once now while there is only Architect, and get every new career free as we build them."),
+            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 8, maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' } }, "Be one of our first 100 founders and unlock every career we release in your first year, all age levels included. Pay once now while there is only Architect, and get every new career free as we build them across your founder year."),
             React.createElement("div", { style: { margin: '18px 0' } },
                 React.createElement(PriceTag, { founder: PRICING.academy.founder, full: PRICING.academy.full, size: 40 })),
             React.createElement("div", { style: { display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', margin: '20px 0 28px', color: 'var(--text)', fontSize: 14 } },
@@ -586,7 +586,7 @@ function LibraryPage({ go }) {
                     " Every future career, free"),
                 React.createElement("span", null,
                     '\u2713',
-                    " Locked in forever")),
+                    " Every career in your first year")),
             React.createElement("button", { onClick: () => go('purchase', 'academy'), className: "btn btn-primary", style: { fontSize: 16 } },
                 "Become a Founder ",
                 PRICING.academy.founder),
@@ -658,7 +658,7 @@ function PurchasePage({ id, go }) {
     const title = isAcademy ? 'Founder Academy Pass' : (mission ? mission.career + ' \u00B7 ' + mission.level : 'Mission');
     const accent = isAcademy ? '#F4D03F' : (mission ? mission.accent : '#1A8FE3');
     const included = isAcademy
-        ? ['All three Architect levels (4 to 16)', 'Every future career we release, free', 'Locked in forever, pay once', 'Certificates for every mission', 'Printer friendly versions']
+        ? ['All three Architect levels (4 to 16)', 'Every future career we release, free', 'Every career in your first year, pay once', 'Certificates for every mission', 'Printer friendly versions']
         : ['9 unique challenges', mission ? ('Rank progression: ' + mission.ranks.join(', ')) : '', 'XP and progression', 'Real World Mission', 'Interactive explore panels', 'Certificate of Achievement', 'Printer friendly version'].filter(Boolean);
     const inputStyle = { width: '100%', background: 'rgba(255,255,255,0.06)', border: '2px solid var(--border)', borderRadius: 50, padding: '14px 24px', color: 'white', fontFamily: 'Open Sans,sans-serif', fontSize: 15, outline: 'none' };
     return (React.createElement("div", { style: { position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '60px 24px 80px' } },
