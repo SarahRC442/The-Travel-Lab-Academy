@@ -335,11 +335,14 @@ function FloatingEmojis() {
         return null;
     return (React.createElement("div", { style: { position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 } }, items.map((it, i) => (React.createElement("span", { key: i, style: { position: 'absolute', left: it.left + '%', bottom: '-60px', fontSize: it.size + 'px', opacity: it.opacity, animation: `floatUp ${it.duration}s linear ${it.delay}s infinite` } }, it.emoji)))));
 }
-function NavBar({ go }) {
+function NavBar({ go, page }) {
     const link = { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 15, color: 'rgba(255,255,255,0.85)', cursor: 'pointer' };
+    const backStyle = { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 14, color: 'white', cursor: 'pointer', background: 'rgba(255,255,255,0.12)', border: '1px solid var(--border)', borderRadius: 50, padding: '8px 16px', flexShrink: 0 };
     return (React.createElement("nav", { style: { position: 'sticky', top: 0, zIndex: 100, background: 'rgba(13,33,55,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' } },
+        React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 } },
+        page && page !== 'home' && React.createElement("button", { onClick: () => go('home'), style: backStyle }, "\u2190 Back"),
         React.createElement("span", { onClick: () => go('home'), style: { display: 'flex', alignItems: 'center', flexShrink: 0, cursor: 'pointer' } },
-            React.createElement("img", { src: LOGO, alt: "The Travel Lab", style: { height: 56, objectFit: 'contain', background: 'white', borderRadius: 10, padding: 4 } })),
+            React.createElement("img", { src: LOGO, alt: "The Travel Lab", style: { height: 56, objectFit: 'contain', background: 'white', borderRadius: 10, padding: 4 } }))),
         React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' } },
             React.createElement("span", { onClick: () => go('control'), style: link }, "Mission Control"),
             React.createElement("span", { onClick: () => go('certificate'), style: link }, "Certificate"),
@@ -355,7 +358,7 @@ function Footer({ go }) {
             React.createElement("span", { onClick: () => go('control'), style: fl }, "Mission Control"),
             React.createElement("span", { onClick: () => go('about'), style: fl }, "About")),
         React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, color: 'var(--magenta)', letterSpacing: 4, fontStyle: 'italic', marginBottom: 16 } }, "Dream \u00A0 Discover \u00A0 Become"),
-        React.createElement("div", { style: { fontSize: 13, color: 'var(--muted)' } }, "\u00A9 2026 The Travel Lab by C442 Apps")));
+        React.createElement("div", { style: { fontSize: 13, color: 'var(--muted)' } }, "\u00A9 2026 ", React.createElement("a", { href: "https://www.thetravellab.co.uk/", target: "_blank", rel: "noreferrer", style: { color: 'var(--sky)', textDecoration: 'underline' } }, "The Travel Lab by C442 Apps"))));
 }
 function MyWay() {
     const [open, setOpen] = useState(false);
@@ -574,7 +577,7 @@ function LibraryPage({ go }) {
                 '\u00B7',
                 " FIRST 100 ONLY"),
             React.createElement("h2", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(24px,4vw,32px)', color: 'white', marginBottom: 10 } }, "Founder Academy Pass"),
-            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 8, maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' } }, "Be one of our first 100 founders and unlock every career we release in your first year, all age levels included. Pay once now while there is only Architect, and get every new career free as we build them across your founder year."),
+            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 8, maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' } }, "Be one of our first 100 founders and lock in every career we ever release, all age levels, forever. Pay once now while there is only Architect, and get every new career free as we build them."),
             React.createElement("div", { style: { margin: '18px 0' } },
                 React.createElement(PriceTag, { founder: PRICING.academy.founder, full: PRICING.academy.full, size: 40 })),
             React.createElement("div", { style: { display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', margin: '20px 0 28px', color: 'var(--text)', fontSize: 14 } },
@@ -586,7 +589,7 @@ function LibraryPage({ go }) {
                     " Every future career, free"),
                 React.createElement("span", null,
                     '\u2713',
-                    " Every career in your first year")),
+                    " Locked in forever")),
             React.createElement("button", { onClick: () => go('purchase', 'academy'), className: "btn btn-primary", style: { fontSize: 16 } },
                 "Become a Founder ",
                 PRICING.academy.founder),
@@ -658,7 +661,7 @@ function PurchasePage({ id, go }) {
     const title = isAcademy ? 'Founder Academy Pass' : (mission ? mission.career + ' \u00B7 ' + mission.level : 'Mission');
     const accent = isAcademy ? '#F4D03F' : (mission ? mission.accent : '#1A8FE3');
     const included = isAcademy
-        ? ['All three Architect levels (4 to 16)', 'Every future career we release, free', 'Every career in your first year, pay once', 'Certificates for every mission', 'Printer friendly versions']
+        ? ['All three Architect levels (4 to 16)', 'Every future career we release, free', 'Locked in forever, pay once', 'Certificates for every mission', 'Printer friendly versions']
         : ['9 unique challenges', mission ? ('Rank progression: ' + mission.ranks.join(', ')) : '', 'XP and progression', 'Real World Mission', 'Interactive explore panels', 'Certificate of Achievement', 'Printer friendly version'].filter(Boolean);
     const inputStyle = { width: '100%', background: 'rgba(255,255,255,0.06)', border: '2px solid var(--border)', borderRadius: 50, padding: '14px 24px', color: 'white', fontFamily: 'Open Sans,sans-serif', fontSize: 15, outline: 'none' };
     return (React.createElement("div", { style: { position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '60px 24px 80px' } },
@@ -1276,7 +1279,7 @@ function App() {
         content = React.createElement(HomePage, { go: go });
     return (React.createElement(React.Fragment, null,
         page !== 'little-builder' && React.createElement(FloatingEmojis, null),
-        React.createElement(NavBar, { go: go }),
+        React.createElement(NavBar, { go: go, page: page }),
         React.createElement("main", { style: { position: 'relative', zIndex: 1, minHeight: '70vh' } }, content),
         React.createElement(Footer, { go: go }),
         React.createElement(MyWay, null)));
