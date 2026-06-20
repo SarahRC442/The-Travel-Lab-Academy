@@ -31,10 +31,17 @@ select option{background:#1F3A5F;color:white}
 @keyframes floatUp{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(-110vh) rotate(360deg)}}
 body.ttl-calm *{animation:none !important;transition:none !important;}
 @keyframes lbFloat{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-30px) rotate(6deg)}}
+@page{margin:14mm}
 @media print{
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
   body{background:white !important}
-  .no-print,nav,.app-footer,.myway-btn{display:none !important}
-  .cert-print{border:3px solid #1F3A5F !important;box-shadow:none !important}
+  .no-print,nav,.app-footer,.myway-btn,.lb-floaters,.float-emoji{display:none !important}
+  .cert-print{border:3px solid #1F3A5F !important;box-shadow:none !important;break-inside:avoid;page-break-inside:avoid;max-width:100% !important}
+  .print-page{page-break-after:always;break-after:page}
+  .print-page:last-child{page-break-after:auto;break-after:auto}
+  .print-avoid{break-inside:avoid;page-break-inside:avoid}
+  img{max-width:100% !important}
+  textarea,input{border:1px solid #999 !important}
 }
 </style>
 </head>
@@ -333,7 +340,7 @@ function FloatingEmojis() {
     }, []);
     if (calm)
         return null;
-    return (React.createElement("div", { style: { position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 } }, items.map((it, i) => (React.createElement("span", { key: i, style: { position: 'absolute', left: it.left + '%', bottom: '-60px', fontSize: it.size + 'px', opacity: it.opacity, animation: `floatUp ${it.duration}s linear ${it.delay}s infinite` } }, it.emoji)))));
+    return (React.createElement("div", { className: "float-emoji", style: { position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 } }, items.map((it, i) => (React.createElement("span", { key: i, style: { position: 'absolute', left: it.left + '%', bottom: '-60px', fontSize: it.size + 'px', opacity: it.opacity, animation: `floatUp ${it.duration}s linear ${it.delay}s infinite` } }, it.emoji)))));
 }
 function NavBar({ go, page }) {
     const link = { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 15, color: 'rgba(255,255,255,0.85)', cursor: 'pointer' };
@@ -951,7 +958,7 @@ function LBFloaters() {
     const spots = [[8, 18], [78, 24], [14, 64], [82, 68], [46, 10], [30, 82], [64, 46], [90, 40]];
     if (calm)
         return null;
-    return (React.createElement("div", { style: { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' } }, emo.map((e, i) => (React.createElement("span", { key: i, style: { position: 'absolute', left: spots[i][0] + '%', top: spots[i][1] + '%', fontSize: 46, opacity: 0.22, animation: `lbFloat 14s ease-in-out ${i * 1.6}s infinite` } }, e)))));
+    return (React.createElement("div", { className: "float-emoji", style: { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' } }, emo.map((e, i) => (React.createElement("span", { key: i, style: { position: 'absolute', left: spots[i][0] + '%', top: spots[i][1] + '%', fontSize: 46, opacity: 0.22, animation: `lbFloat 14s ease-in-out ${i * 1.6}s infinite` } }, e)))));
 }
 function LBSpot({ items, onComplete }) {
     const [found, setFound] = useState([]);
