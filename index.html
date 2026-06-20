@@ -241,6 +241,12 @@ const PRICING = {
     bundle: { founder: '\u00A312.99', full: '\u00A314.99' },
     academy: { founder: '\u00A349.99', full: '\u00A359.99' },
 };
+// Gumroad checkout links. Single pack is live. Add bundle + academy links here when those products exist.
+const GUMROAD = {
+    single: 'https://c442apps.gumroad.com/l/ewdafs',
+    bundle: '',
+    academy: '',
+};
 // The three age levels of the Architect mission.
 const LEVELS = [
     { id: 'early', name: 'Early Explorer', ages: 'Ages 4 to 7', icon: '\uD83C\uDF31', accent: '#5DADE2',
@@ -564,7 +570,10 @@ function LibraryPage({ go }) {
             React.createElement(FounderBadge, null)),
         React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(36px,6vw,56px)', textAlign: 'center', color: 'white', marginBottom: 8 } }, "The Academy"),
         React.createElement("p", { style: { textAlign: 'center', color: 'var(--muted)', marginBottom: 16, fontSize: 18 } }, "Future Architect, in three age levels. More careers launching every month."),
-        React.createElement("p", { style: { textAlign: 'center', color: 'var(--yellow)', marginBottom: 48, fontSize: 15, fontFamily: 'Montserrat,sans-serif', fontWeight: 700 } }, "Founder pricing for the first 100 members. Lock in the lowest price we will ever offer."),
+        React.createElement("div", { style: { maxWidth: 620, margin: '0 auto 48px', background: 'linear-gradient(135deg,rgba(244,208,63,0.14),rgba(244,208,63,0.05))', border: '1px solid rgba(244,208,63,0.4)', borderRadius: 18, padding: '24px 28px', textAlign: 'left' } },
+            React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 18, color: 'var(--yellow)', marginBottom: 10, textAlign: 'center' } }, "Why become a Founder ?"),
+            React.createElement("p", { style: { fontSize: 15, color: 'var(--text)', lineHeight: 1.7, marginBottom: 10 } }, "We are just getting started, and the first 100 families to join get to shape what The Travel Lab becomes. Become a Founder, pay once, and unlock every new career we release in your first year, free."),
+            React.createElement("p", { style: { fontSize: 15, color: 'var(--text)', lineHeight: 1.7, margin: 0 } }, "You lock in the lowest price we will ever offer. Founders are not late to the party. They are the reason there is a party at all.")),
         React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 24, marginBottom: 48 } }, MISSIONS.map(m => (React.createElement("div", { key: m.id, style: { background: 'var(--card)', border: '2px solid ' + m.accent, borderRadius: 20, overflow: 'hidden', display: 'flex', flexDirection: 'column' } },
             React.createElement("div", { style: { background: `linear-gradient(135deg, ${m.accent}33, ${m.accent}11)`, padding: '20px 24px', borderBottom: `1px dashed ${m.accent}66` } },
                 React.createElement("div", { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 } },
@@ -678,6 +687,7 @@ function PurchasePage({ id, go }) {
     const mission = MISSIONS.find(m => m.id === id);
     const [email, setEmail] = useState('');
     const tier = isAcademy ? PRICING.academy : PRICING.single;
+    const buyLink = isAcademy ? GUMROAD.academy : GUMROAD.single;
     const title = isAcademy ? 'Founder Academy Pass' : (mission ? mission.career + ' \u00B7 ' + mission.level : 'Mission');
     const accent = isAcademy ? '#F4D03F' : (mission ? mission.accent : '#1A8FE3');
     const included = isAcademy
@@ -703,10 +713,12 @@ function PurchasePage({ id, go }) {
                 React.createElement("div", { style: { display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 } },
                     !isAcademy && mission && mission.route && React.createElement("button", { onClick: () => go(mission.route), className: "btn btn-secondary" }, "Preview the Mission"),
                     !isAcademy && mission && (mission.route || mission.taster) && React.createElement("button", { onClick: () => go(mission.route ? mission.route : 'taster', mission.route ? null : mission.taster), className: "btn btn-outline" }, "Free Taster First"),
-                    React.createElement("a", { href: "https://www.thetravellab.co.uk/", target: "_blank", rel: "noreferrer", className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 160, opacity: email.trim() ? 1 : 0.6, pointerEvents: email.trim() ? 'auto' : 'none' } },
-                        "Buy Now ",
-                        tier.founder)),
-                React.createElement("p", { style: { fontSize: 12, color: 'var(--muted)', marginTop: 16 } }, "Secure checkout. Your card details are handled entirely by the payment provider, we never see or store them. Connect your Stripe Payment Link to the Buy Now button when ready, and your email tool to capture the address above.")))));
+                    buyLink
+                        ? React.createElement("a", { href: buyLink, target: "_blank", rel: "noreferrer", className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 160 } },
+                            "Buy Now ",
+                            tier.founder)
+                        : React.createElement("div", { style: { flex: 1, minWidth: 160, textAlign: 'center', padding: '14px 20px', borderRadius: 50, background: 'rgba(255,255,255,0.06)', color: 'var(--muted)', fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 14 } }, "Coming soon")),
+                React.createElement("p", { style: { fontSize: 12, color: 'var(--muted)', marginTop: 16 } }, "Secure checkout through Gumroad. Your card details are handled entirely by Gumroad, we never see or store them.")))));
 }
 function CertificatePage() {
     const [name, setName] = useState('');
