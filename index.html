@@ -250,9 +250,20 @@ const LEVELS = [
 ];
 // MISSIONS = every Architect age level as its own card. All three are live
 // (openable when paid). Each has a free playable taster and a Founder Preview badge.
+const UPCOMING_CAREERS = [
+    { emoji: '\uD83C\uDFD7\uFE0F', name: 'Architect', teaser: 'Design airports, build bridges, invent transport and plan a future city.', live: true, accent: '#5DADE2' },
+    { emoji: '\uD83D\uDC3E', name: 'Future Vet', teaser: 'Diagnose patients, design your surgery and build an animal sanctuary.', live: false, accent: '#2ECC71' },
+    { emoji: '\u26BD', name: 'Future Football Manager', teaser: 'Build your dream team, master tactics and sign players in the transfer window.', live: false, accent: '#27AE60' },
+    { emoji: '\uD83C\uDFE8', name: 'Future Hotel Owner', teaser: 'Handle difficult guests, design luxury rooms and create your signature restaurant menu.', live: false, accent: '#F4D03F' },
+    { emoji: '\uD83D\uDCF8', name: 'Future Travel Blogger', teaser: 'Write travel stories, frame the perfect shot and plan your dream content trip.', live: false, accent: '#E91E8C' },
+    { emoji: '\u2708\uFE0F', name: 'Future Cabin Crew', teaser: 'Write the safety demonstration, handle emergencies and design your airline.', live: false, accent: '#5DADE2' },
+    { emoji: '\uD83D\uDEE9\uFE0F', name: 'Future Pilot', teaser: 'Read the weather, design your cockpit and plan the perfect flight route.', live: false, accent: '#1A8FE3' },
+    { emoji: '\uD83D\uDCF1', name: 'Future App Developer', teaser: 'Spot a real problem, build the solution and pitch your app to investors.', live: false, accent: '#9B59B6' },
+    { emoji: '\uD83D\uDC68\u200D\uD83C\uDF73', name: 'Future Chef', teaser: 'Run your Flavour Lab, create your signature dish and design your restaurant.', live: false, accent: '#E74C3C' },
+];
 const MISSIONS = [
     {
-        id: 'arch-early', number: 'ARCHITECT \u00B7 LEVEL 1', career: 'Future Architect',
+        id: 'arch-early', number: 'ARCHITECT \u00B7 LEVEL 1', career: 'Little Builder',
         levelId: 'early', level: 'Early Explorer', ages: 'Ages 4 to 7',
         blurb: 'Little Builder. Draw your dream house, spot buildings out in the world and design a magic door, with gold stars that count themselves.',
         ranks: ['Little Builder', 'Big Builder', 'Super Builder', 'Star Architect'],
@@ -268,7 +279,7 @@ const MISSIONS = [
         route: 'mission001',
     },
     {
-        id: 'arch-future', number: 'ARCHITECT \u00B7 LEVEL 3', career: 'Future Architect',
+        id: 'arch-future', number: 'ARCHITECT \u00B7 LEVEL 3', career: 'Principal Architect',
         levelId: 'future', level: 'Future Leader', ages: 'Ages 11 to 16',
         blurb: 'Principal Architect. Write a design brief for a city built to last 100 years, draw a section, weigh real trade-offs and defend your vision.',
         ranks: ['Design Assistant', 'Project Architect', 'Lead Architect', 'Principal Architect'],
@@ -599,7 +610,15 @@ function LibraryPage({ go }) {
                 "Only here for one career? Grab a single career bundle (all 3 levels) for ",
                 React.createElement("strong", { style: { color: 'white' } }, PRICING.bundle.founder),
                 " ",
-                React.createElement("span", { style: { textDecoration: 'line-through' } }, PRICING.bundle.full)))));
+                React.createElement("span", { style: { textDecoration: 'line-through' } }, PRICING.bundle.full))),
+        React.createElement("div", { style: { marginTop: 56 } },
+            React.createElement("h2", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(26px,4vw,38px)', color: 'white', textAlign: 'center', marginBottom: 8 } }, "Nine Careers and Growing"),
+            React.createElement("p", { style: { textAlign: 'center', color: 'var(--muted)', maxWidth: 560, margin: '0 auto 12px', fontSize: 16 } }, "Architect is live now. We are building a new career every month. Founder Academy Pass members unlock every career we release in their first year."),
+            React.createElement("div", { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 16, marginTop: 32 } }, UPCOMING_CAREERS.map((c, i) => React.createElement("div", { key: i, style: { background: 'var(--card)', border: '2px solid ' + (c.live ? c.accent : 'var(--border)'), borderRadius: 18, padding: 22, position: 'relative', opacity: c.live ? 1 : 0.92 } },
+                React.createElement("div", { style: { position: 'absolute', top: 14, right: 14, background: c.live ? c.accent : 'rgba(255,255,255,0.08)', color: c.live ? '#0D2137' : 'var(--muted)', fontFamily: 'Montserrat,sans-serif', fontWeight: 800, fontSize: 10, letterSpacing: 1, padding: '4px 10px', borderRadius: 50 } }, c.live ? "LIVE NOW" : "COMING SOON"),
+                React.createElement("div", { style: { fontSize: 40, marginBottom: 12 } }, c.emoji),
+                React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 18, color: 'white', marginBottom: 8 } }, c.name),
+                React.createElement("p", { style: { fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 } }, c.teaser)))))));
 }
 function TasterSample({ s }) {
     return (React.createElement("div", { style: { background: 'var(--card)', border: '2px solid var(--border)', borderRadius: 20, padding: 28, marginBottom: 24, position: 'relative', overflow: 'hidden' } },
@@ -753,8 +772,8 @@ function MissionControlPage({ go }) {
         React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(32px,5vw,48px)', color: 'white', textAlign: 'center', marginBottom: 40 } }, "Mission Control"),
         React.createElement("div", { style: { display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' } }, MISSIONS.map(m => (React.createElement("div", { key: m.id, style: { background: 'var(--card)', border: '2px solid ' + m.accent, borderRadius: 16, padding: 24, textAlign: 'center', flex: '0 1 260px', maxWidth: 300 } },
             React.createElement("div", { style: { fontSize: 40, marginBottom: 10 } }, m.icon),
-            React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 15, color: 'white', marginBottom: 4 } }, m.career),
-            React.createElement("div", { style: { fontSize: 12, color: m.accent, fontFamily: 'Montserrat,sans-serif', fontWeight: 700 } }, m.level),
+            React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 20, color: 'white', marginBottom: 4 } }, m.career),
+            React.createElement("div", { style: { fontSize: 15, color: m.accent, fontFamily: 'Montserrat,sans-serif', fontWeight: 800, letterSpacing: 0.5 } }, m.level),
             React.createElement("span", { onClick: () => go(m.route ? m.route : 'taster', m.route ? null : m.taster), style: { display: 'inline-block', marginTop: 12, color: m.accent, fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } },
                 "Open ",
                 '\u2192')))))));
