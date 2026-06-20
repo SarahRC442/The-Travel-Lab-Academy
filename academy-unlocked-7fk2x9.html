@@ -31,10 +31,17 @@ select option{background:#1F3A5F;color:white}
 @keyframes floatUp{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(-110vh) rotate(360deg)}}
 body.ttl-calm *{animation:none !important;transition:none !important;}
 @keyframes lbFloat{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-30px) rotate(6deg)}}
+@page{margin:14mm}
 @media print{
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
   body{background:white !important}
-  .no-print,nav,.app-footer,.myway-btn{display:none !important}
-  .cert-print{border:3px solid #1F3A5F !important;box-shadow:none !important}
+  .no-print,nav,.app-footer,.myway-btn,.lb-floaters,.float-emoji{display:none !important}
+  .cert-print{border:3px solid #1F3A5F !important;box-shadow:none !important;break-inside:avoid;page-break-inside:avoid;max-width:100% !important}
+  .print-page{page-break-after:always;break-after:page}
+  .print-page:last-child{page-break-after:auto;break-after:auto}
+  .print-avoid{break-inside:avoid;page-break-inside:avoid}
+  img{max-width:100% !important}
+  textarea,input{border:1px solid #999 !important}
 }
 </style>
 </head>
@@ -333,7 +340,7 @@ function FloatingEmojis() {
     }, []);
     if (calm)
         return null;
-    return (React.createElement("div", { style: { position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 } }, items.map((it, i) => (React.createElement("span", { key: i, style: { position: 'absolute', left: it.left + '%', bottom: '-60px', fontSize: it.size + 'px', opacity: it.opacity, animation: `floatUp ${it.duration}s linear ${it.delay}s infinite` } }, it.emoji)))));
+    return (React.createElement("div", { className: "float-emoji", style: { position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 } }, items.map((it, i) => (React.createElement("span", { key: i, style: { position: 'absolute', left: it.left + '%', bottom: '-60px', fontSize: it.size + 'px', opacity: it.opacity, animation: `floatUp ${it.duration}s linear ${it.delay}s infinite` } }, it.emoji)))));
 }
 function NavBar({ go, page }) {
     const link = { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 15, color: 'rgba(255,255,255,0.85)', cursor: 'pointer' };
@@ -518,7 +525,6 @@ function HomePage({ go }) {
                     React.createElement(FounderBadge, { small: true })),
                 React.createElement("div", { style: { fontSize: 48, marginBottom: 16, marginTop: 8 } }, l.icon),
                 React.createElement("h3", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 22, color: 'white', marginBottom: 6 } }, l.name),
-                React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, color: l.accent, marginBottom: 16 } }, l.ages),
                 React.createElement("p", { style: { fontSize: 14, color: 'var(--muted)', marginBottom: 20 } }, l.blurb),
                 React.createElement("span", { onClick: (e) => { e.stopPropagation(); const m = MISSIONS.find(x => x.levelId === l.id); go(m && m.route ? m.route : 'taster', m && m.route ? null : l.id); }, style: { display: 'inline-block', color: l.accent, fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } },
                     "Try the free taster ",
@@ -557,11 +563,7 @@ function LibraryPage({ go }) {
             React.createElement("div", { style: { padding: 24, flex: 1, display: 'flex', flexDirection: 'column' } },
                 React.createElement("h3", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 22, color: 'white', marginBottom: 2 } }, m.career),
                 React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, color: m.accent, fontSize: 14, marginBottom: 10 } },
-                    m.level,
-                    " ",
-                    '\u00B7',
-                    " ",
-                    m.ages),
+                    m.level),
                 React.createElement("p", { style: { fontSize: 14, color: 'var(--muted)', marginBottom: 16, flex: 1 } }, m.blurb),
                 React.createElement("div", { style: { display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 } }, m.ranks.map((r, i) => (React.createElement("span", { key: i, style: { fontSize: 11, color: i === 0 ? m.accent : 'var(--muted)', border: '1px solid ' + (i === 0 ? m.accent : 'var(--border)'), borderRadius: 50, padding: '3px 10px', fontWeight: 600 } }, r)))),
                 React.createElement("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
@@ -577,7 +579,7 @@ function LibraryPage({ go }) {
                 '\u00B7',
                 " FIRST 100 ONLY"),
             React.createElement("h2", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(24px,4vw,32px)', color: 'white', marginBottom: 10 } }, "Founder Academy Pass"),
-            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 8, maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' } }, "Be one of our first 100 founders and lock in every career we ever release, all age levels, forever. Pay once now while there is only Architect, and get every new career free as we build them."),
+            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 8, maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' } }, "Be one of our first 100 founders and unlock every career we release in your first year, all age levels included. Pay once now while there is only Architect, and get every new career free as we build them across your founder year."),
             React.createElement("div", { style: { margin: '18px 0' } },
                 React.createElement(PriceTag, { founder: PRICING.academy.founder, full: PRICING.academy.full, size: 40 })),
             React.createElement("div", { style: { display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', margin: '20px 0 28px', color: 'var(--text)', fontSize: 14 } },
@@ -589,7 +591,7 @@ function LibraryPage({ go }) {
                     " Every future career, free"),
                 React.createElement("span", null,
                     '\u2713',
-                    " Locked in forever")),
+                    " Every career in your first year")),
             React.createElement("button", { onClick: () => go('purchase', 'academy'), className: "btn btn-primary", style: { fontSize: 16 } },
                 "Become a Founder ",
                 PRICING.academy.founder),
@@ -627,10 +629,7 @@ function TasterPage({ go, level }) {
     return (React.createElement("div", { style: { position: 'relative', zIndex: 1, maxWidth: 820, margin: '0 auto', padding: '50px 24px 80px' } },
         React.createElement("div", { style: { textAlign: 'center', marginBottom: 32 } },
             React.createElement("div", { style: { display: 'inline-block', background: `linear-gradient(135deg,${t.accent},${t.accent}cc)`, borderRadius: 50, padding: '6px 20px', fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 12, letterSpacing: 2, color: 'white', marginBottom: 20 } },
-                "FREE TASTER ",
-                '\u00B7',
-                " ",
-                t.ages),
+                "FREE TASTER"),
             React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(30px,6vw,48px)', color: 'white', marginBottom: 12 } }, t.title),
             React.createElement("p", { style: { color: 'var(--muted)', maxWidth: 620, margin: '0 auto', fontSize: 16 } }, t.intro)),
         t.samples.map((s, i) => (React.createElement("div", { key: i },
@@ -661,7 +660,7 @@ function PurchasePage({ id, go }) {
     const title = isAcademy ? 'Founder Academy Pass' : (mission ? mission.career + ' \u00B7 ' + mission.level : 'Mission');
     const accent = isAcademy ? '#F4D03F' : (mission ? mission.accent : '#1A8FE3');
     const included = isAcademy
-        ? ['All three Architect levels (4 to 16)', 'Every future career we release, free', 'Locked in forever, pay once', 'Certificates for every mission', 'Printer friendly versions']
+        ? ['All three Architect levels (4 to 16)', 'Every future career we release, free', 'Every career in your first year, pay once', 'Certificates for every mission', 'Printer friendly versions']
         : ['9 unique challenges', mission ? ('Rank progression: ' + mission.ranks.join(', ')) : '', 'XP and progression', 'Real World Mission', 'Interactive explore panels', 'Certificate of Achievement', 'Printer friendly version'].filter(Boolean);
     const inputStyle = { width: '100%', background: 'rgba(255,255,255,0.06)', border: '2px solid var(--border)', borderRadius: 50, padding: '14px 24px', color: 'white', fontFamily: 'Open Sans,sans-serif', fontSize: 15, outline: 'none' };
     return (React.createElement("div", { style: { position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '60px 24px 80px' } },
@@ -712,7 +711,10 @@ function CertificatePage() {
             React.createElement("label", { style: { ...labelStyle, marginTop: 20 } }, "Your name"),
             React.createElement("input", { value: name, onChange: e => setName(e.target.value), placeholder: "Type your name here...", style: inputStyle }),
             React.createElement("button", { onClick: generate, disabled: !name.trim(), className: "btn btn-primary", style: { width: '100%', justifyContent: 'center', marginTop: 24, opacity: name.trim() ? 1 : 0.5 } }, "Generate My Certificate \uD83C\uDFC6")))) : (React.createElement(React.Fragment, null,
-        React.createElement("div", { className: "cert-print", style: { background: 'white', color: '#1F3A5F', borderRadius: 4, padding: '48px 40px', border: '3px solid #1F3A5F', maxWidth: 700, margin: '0 auto', position: 'relative', textAlign: 'center' } },
+        React.createElement("div", { className: "cert-print", style: { background: 'white', color: '#1F3A5F', borderRadius: 4, padding: '48px 40px', border: '3px solid #1F3A5F', maxWidth: 700, margin: '0 auto', position: 'relative', textAlign: 'center', overflow: 'hidden' } },
+            !PAID && React.createElement("div", { style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 5 } },
+                React.createElement("div", { style: { transform: 'rotate(-30deg)', fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(60px,14vw,120px)', color: 'rgba(233,30,140,0.22)', letterSpacing: 8, whiteSpace: 'nowrap', textTransform: 'uppercase' } }, "Taster")),
+            !PAID && React.createElement("div", { style: { position: 'relative', zIndex: 6, background: '#E91E8C', color: '#fff', display: 'inline-block', fontFamily: 'Montserrat,sans-serif', fontWeight: 800, fontSize: 12, letterSpacing: 1, padding: '6px 16px', borderRadius: 50, marginBottom: 18 } }, "Free taster preview \u00B7 unlock the full pack for your real certificate"),
             React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, letterSpacing: 4, fontSize: 12, color: '#B8860B', marginBottom: 24 } }, "THE TRAVEL LAB ACADEMY"),
             React.createElement("img", { src: LOGO, alt: "Travel Lab", style: { width: '100%', maxWidth: 280, objectFit: 'contain', marginBottom: 20 } }),
             React.createElement("div", { style: { fontSize: 20, color: '#1F3A5F', marginBottom: 8 } }, "\u2726"),
@@ -753,7 +755,6 @@ function MissionControlPage({ go }) {
             React.createElement("div", { style: { fontSize: 40, marginBottom: 10 } }, m.icon),
             React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 15, color: 'white', marginBottom: 4 } }, m.career),
             React.createElement("div", { style: { fontSize: 12, color: m.accent, fontFamily: 'Montserrat,sans-serif', fontWeight: 700 } }, m.level),
-            React.createElement("div", { style: { fontSize: 11, color: 'var(--muted)', marginTop: 2 } }, m.ages),
             React.createElement("span", { onClick: () => go(m.route ? m.route : 'taster', m.route ? null : m.taster), style: { display: 'inline-block', marginTop: 12, color: m.accent, fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } },
                 "Open ",
                 '\u2192')))))));
@@ -771,12 +772,16 @@ function AboutPage() {
             React.createElement("span", { style: { fontSize: 32 } }, l.icon),
             React.createElement("div", null,
                 React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, color: 'white' } },
-                    l.name,
-                    " ",
-                    React.createElement("span", { style: { color: l.accent, fontWeight: 700, fontSize: 13 } },
-                        "\u00B7 ",
-                        l.ages)),
+                    l.name),
                 React.createElement("div", { style: { fontSize: 14, color: 'var(--muted)' } }, l.blurb)))))),
+        React.createElement("div", { style: { maxWidth: 620, margin: '36px auto 0', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 24px' } },
+            React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 800, fontSize: 13, letterSpacing: 1, color: 'var(--sky)', marginBottom: 10 } }, "FOR PARENTS \u00B7 CHOOSING A LEVEL"),
+            React.createElement("div", { style: { fontSize: 14, color: 'var(--muted)', lineHeight: 1.7 } },
+                LEVELS.map((l, i) => React.createElement("div", { key: i, style: { marginBottom: 4 } },
+                    React.createElement("span", { style: { color: l.accent, fontWeight: 700 } }, l.name),
+                    " \u00B7 ",
+                    l.ages)),
+                React.createElement("div", { style: { marginTop: 10, fontStyle: 'italic', opacity: 0.85 } }, "Levels are a guide, not a rule. Children can explore whichever level feels right for them."))),
         React.createElement("p", { style: { textAlign: 'center', color: 'var(--muted)', marginTop: 40, fontSize: 14 } }, "The Travel Lab is created by C442 Apps.")));
 }
 // How many challenges are free before the paywall. Set PAID=true (or wire it
@@ -953,7 +958,7 @@ function LBFloaters() {
     const spots = [[8, 18], [78, 24], [14, 64], [82, 68], [46, 10], [30, 82], [64, 46], [90, 40]];
     if (calm)
         return null;
-    return (React.createElement("div", { style: { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' } }, emo.map((e, i) => (React.createElement("span", { key: i, style: { position: 'absolute', left: spots[i][0] + '%', top: spots[i][1] + '%', fontSize: 46, opacity: 0.22, animation: `lbFloat 14s ease-in-out ${i * 1.6}s infinite` } }, e)))));
+    return (React.createElement("div", { className: "float-emoji", style: { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' } }, emo.map((e, i) => (React.createElement("span", { key: i, style: { position: 'absolute', left: spots[i][0] + '%', top: spots[i][1] + '%', fontSize: 46, opacity: 0.22, animation: `lbFloat 14s ease-in-out ${i * 1.6}s infinite` } }, e)))));
 }
 function LBSpot({ items, onComplete }) {
     const [found, setFound] = useState([]);
@@ -1034,9 +1039,7 @@ function LittleBuilderPage({ go }) {
                     '\u2708\uFE0F',
                     " TRAVEL LAB ACADEMY"),
                 React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 800, fontSize: 13, color: LB.tealDeep, letterSpacing: 2, marginBottom: 8 } },
-                    "EARLY EXPLORER ",
-                    '\u00B7',
-                    " AGES 4 TO 7"),
+                    "EARLY EXPLORER"),
                 React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(40px,9vw,66px)', color: LB.tealDeep, lineHeight: 1 } }, "Little Builder"),
                 React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 800, fontSize: 'clamp(17px,4vw,22px)', color: LB.coralDeep, letterSpacing: 1, marginTop: 6 } }, "Future Architect")),
             React.createElement("div", { style: { position: 'sticky', top: 8, zIndex: 50, background: 'linear-gradient(135deg,' + LB.teal + ',' + LB.tealDeep + ')', borderRadius: scrolled ? 50 : 16, padding: scrolled ? '8px 16px' : '10px 16px', marginBottom: 22, boxShadow: '0 4px 14px rgba(43,74,74,0.25)', display: 'flex', alignItems: 'center', justifyContent: scrolled ? 'center' : 'space-between', gap: 12, flexWrap: 'wrap', width: scrolled ? 'auto' : '100%', marginLeft: scrolled ? 'auto' : 0, marginRight: scrolled ? 'auto' : 0, transition: 'all .3s ease' } }, scrolled ? (React.createElement("div", { style: { display: 'flex', alignItems: 'center', gap: 8 } },
@@ -1191,9 +1194,7 @@ function PrincipalArchitectPage({ go }) {
                     '\u2708\uFE0F',
                     " TRAVEL LAB ACADEMY"),
                 React.createElement("div", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, color: PA.sky, letterSpacing: 3, marginBottom: 8 } },
-                    "FUTURE LEADER ",
-                    '\u00B7',
-                    " AGES 11 TO 16"),
+                    "FUTURE LEADER"),
                 React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 'clamp(36px,8vw,64px)', color: PA.ink, lineHeight: 1 } },
                     "Principal ",
                     React.createElement("span", { style: { color: PA.magenta } }, "Architect")),
