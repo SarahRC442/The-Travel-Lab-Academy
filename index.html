@@ -790,7 +790,7 @@ function PurchasePage({ id, go }) {
                     !isAcademy && mission && mission.route && React.createElement("button", { onClick: () => go(mission.route), className: "btn btn-secondary" }, "Preview the Mission"),
                     !isAcademy && mission && (mission.route || mission.taster) && React.createElement("button", { onClick: () => go(mission.route ? mission.route : 'taster', mission.route ? null : mission.taster), className: "btn btn-outline" }, "Free Taster First"),
                     (GUMROAD[id]
-                        ? React.createElement("a", { href: GUMROAD[id], className: "gumroad-button btn btn-primary", "data-gumroad-overlay-checkout": "true", style: { flex: 1, justifyContent: 'center', minWidth: 160 } },
+                        ? React.createElement("a", { href: GUMROAD[id], className: "btn btn-primary", "data-gumroad-overlay-checkout": "true", style: { flex: 1, justifyContent: 'center', minWidth: 160 } },
                             "Buy Now ",
                             tier.founder)
                         : React.createElement("a", { href: "https://www.thetravellab.co.uk/", target: "_blank", rel: "noreferrer", className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 160, opacity: email.trim() ? 1 : 0.6, pointerEvents: email.trim() ? 'auto' : 'none' } },
