@@ -10,6 +10,7 @@
 <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://gumroad.com/js/gumroad.js"></script>
 <style>
 :root{
   --navy:#1F3A5F;--navy2:#0D2137;--sky:#5DADE2;--blue:#1A8FE3;
@@ -788,10 +789,14 @@ function PurchasePage({ id, go }) {
                 React.createElement("div", { style: { display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 } },
                     !isAcademy && mission && mission.route && React.createElement("button", { onClick: () => go(mission.route), className: "btn btn-secondary" }, "Preview the Mission"),
                     !isAcademy && mission && (mission.route || mission.taster) && React.createElement("button", { onClick: () => go(mission.route ? mission.route : 'taster', mission.route ? null : mission.taster), className: "btn btn-outline" }, "Free Taster First"),
-                    React.createElement("a", { href: "https://www.thetravellab.co.uk/", target: "_blank", rel: "noreferrer", className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 160, opacity: email.trim() ? 1 : 0.6, pointerEvents: email.trim() ? 'auto' : 'none' } },
-                        "Buy Now ",
-                        tier.founder)),
-                React.createElement("p", { style: { fontSize: 12, color: 'var(--muted)', marginTop: 16 } }, "Secure checkout. Your card details are handled entirely by the payment provider, we never see or store them. Connect your Stripe Payment Link to the Buy Now button when ready, and your email tool to capture the address above.")))));
+                    (GUMROAD[id]
+                        ? React.createElement("a", { href: GUMROAD[id], className: "gumroad-button btn btn-primary", "data-gumroad-overlay-checkout": "true", style: { flex: 1, justifyContent: 'center', minWidth: 160 } },
+                            "Buy Now ",
+                            tier.founder)
+                        : React.createElement("a", { href: "https://www.thetravellab.co.uk/", target: "_blank", rel: "noreferrer", className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 160, opacity: email.trim() ? 1 : 0.6, pointerEvents: email.trim() ? 'auto' : 'none' } },
+                            "Buy Now ",
+                            tier.founder))),
+                React.createElement("p", { style: { fontSize: 12, color: 'var(--muted)', marginTop: 16 } }, "Secure checkout powered by Gumroad. Your card details are handled entirely by the payment provider, we never see or store them. Your printable pack and access arrive by email the moment you buy.")))));
 }
 function CertificatePage() {
     const [name, setName] = useState('');
@@ -899,6 +904,12 @@ function AboutPage() {
 // to your real purchase check) to unlock everything once Stripe is connected.
 const FREE_CHALLENGES = 2;
 const PAID = false;
+// Gumroad product links per purchase id. Only ids listed here open the Gumroad
+// overlay; any id not listed keeps the old internal Buy button. Add the other
+// products here once they are created in Gumroad.
+const GUMROAD = {
+    'arch-early': 'https://c442apps.gumroad.com/l/ewdafs',
+};
 function Mission001Page({ go }) {
     const [complete, setComplete] = useState(false);
     const [xp, setXp] = useState(0);
