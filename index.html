@@ -529,7 +529,7 @@ function DrawCanvas({ height = 300 }) {
     const [drawMode, setDrawMode] = useState(false);
     const [color, setColor] = useState('#ffffff');
     const [size, setSize] = useState(4);
-    const drawing = useRef(false), last = useRef({ x: 0, y: 0 });
+    const drawing = useRef(false), last = useRef({ x: 0, y: 0 }), lastDrawTime = useRef(0);
     useEffect(() => {
         const c = ref.current;
         if (!c)
@@ -542,8 +542,7 @@ function DrawCanvas({ height = 300 }) {
     const pos = (e) => { const c = ref.current, r = c.getBoundingClientRect(); const sx = c.width / r.width, sy = c.height / r.height; const cx = e.touches ? e.touches[0].clientX : e.clientX; const cy = e.touches ? e.touches[0].clientY : e.clientY; return { x: (cx - r.left) * sx, y: (cy - r.top) * sy }; };
     const start = (e) => { if (!drawMode)
         return; e.preventDefault(); drawing.current = true; last.current = pos(e); };
-    const move = (e) => { if (!drawing.current || !drawMode)
-        return; e.preventDefault(); const c = ref.current, ctx = c.getContext('2d'), p = pos(e); ctx.beginPath(); ctx.moveTo(last.current.x, last.current.y); ctx.lineTo(p.x, p.y); ctx.strokeStyle = color; ctx.lineWidth = size; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); last.current = p; };
+    const move = (e) => { if (!drawing.current || !drawMode) return; e.preventDefault(); const now = Date.now(); if (now - lastDrawTime.current < 25) return; lastDrawTime.current = now; const c = ref.current, ctx = c.getContext('2d'), p = pos(e); ctx.beginPath(); ctx.moveTo(last.current.x, last.current.y); ctx.lineTo(p.x, p.y); ctx.strokeStyle = color; ctx.lineWidth = size; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); last.current = p; };
     const stop = () => { drawing.current = false; };
     const clear = () => { const c = ref.current; c.getContext('2d').clearRect(0, 0, c.width, c.height); };
     const colors = ['#ffffff', '#5DADE2', '#E91E8C', '#F4D03F', '#2ecc71'];
@@ -599,7 +598,6 @@ function HomePage({ go }) {
         { icon: '\u2708\uFE0F', title: 'Pick Your Level', text: 'Three age levels from 4 to 16. Each one is built to fit exactly where your explorer is right now.' },
         { icon: '\uD83C\uDFD7\uFE0F', title: 'Complete the Challenges', text: 'Draw, design, spot, plan and invent. Real interactive panels and challenges. Boredom is not allowed.' },
         { icon: '\u2B50', title: 'Earn Stars, XP and Ranks', text: 'Younger explorers earn gold stars and XP that count themselves. Older ones rate and defend their own designs.' },
-        { icon: '\uD83C\uDFC6', title: 'Claim Your Certificate', text: 'Finish your mission and collect a Certificate of Achievement. Print it. Frame it. Be proud.' },
     ];
     return (React.createElement("div", { style: { position: 'relative', zIndex: 1 } },
         React.createElement("section", { style: { textAlign: 'center', padding: '80px 24px 50px', maxWidth: 900, margin: '0 auto' } },
