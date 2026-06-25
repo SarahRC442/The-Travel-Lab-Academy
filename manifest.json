@@ -1,0 +1,47 @@
+{
+  "name": "The Travel Lab Academy",
+  "short_name": "Travel Lab",
+  "description": "Career exploration adventures for curious young explorers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1F3A5F",
+  "theme_color": "#E91E8C",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231F3A5F' width='192' height='192'/><text x='50%' y='50%' font-size='80' font-weight='bold' text-anchor='middle' dominant-baseline='middle' fill='%23E91E8C' font-family='sans-serif'>TL</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%231F3A5F' width='512' height='512'/><text x='50%' y='50%' font-size='200' font-weight='bold' text-anchor='middle' dominant-baseline='middle' fill='%23E91E8C' font-family='sans-serif'>TL</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%231F3A5F' width='540' height='720'/><text x='270' y='360' font-size='100' text-anchor='middle' dominant-baseline='middle' fill='%23fff'>Adventure Unlocked</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Future Architect",
+      "url": "/unlock/littlebuilder",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%235DADE2' width='96' height='96'/><text x='48' y='48' font-size='40' text-anchor='middle' dominant-baseline='middle' fill='%23fff' font-family='sans-serif'>🏗️</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}
