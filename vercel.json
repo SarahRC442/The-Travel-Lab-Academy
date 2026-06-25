@@ -1,6 +1,6 @@
 {
-  "buildCommand": null,
+  "buildCommand": "echo 'Skipping build for static site'",
   "outputDirectory": ".",
   "framework": null,
-  "cleanUrls": false
+  "public": true
 }
