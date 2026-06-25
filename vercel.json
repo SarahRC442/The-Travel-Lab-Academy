@@ -1,4 +1,8 @@
 {
-  "buildCommand": "echo 'Static site'",
-  "outputDirectory": "."
+  "buildCommand": "echo 'Static site, no build'",
+  "outputDirectory": ".",
+  "framework": null,
+  "rewrites": [
+    { "source": "/unlock/:key", "destination": "/index.html" }
+  ]
 }
