@@ -2,5 +2,4 @@
   "buildCommand": "echo 'Skipping build for static site'",
   "outputDirectory": ".",
   "framework": null,
-  "public": true
 }
