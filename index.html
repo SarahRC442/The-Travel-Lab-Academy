@@ -710,7 +710,7 @@ function HomePage({ go }) {
                 React.createElement("div", { style: { fontSize: 48, marginBottom: 16, marginTop: 8 } }, l.icon),
                 React.createElement("h3", { style: { fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 22, color: 'white', marginBottom: 6 } }, l.name),
                 React.createElement("p", { style: { fontSize: 14, color: 'var(--muted)', marginBottom: 20 } }, l.blurb),
-                React.createElement("span", { onClick: (e) => { e.stopPropagation(); const m = MISSIONS.find(x => x.levelId === l.id); go(m && m.route ? m.route : 'taster', m && m.route ? null : l.id); }, style: { display: 'inline-block', color: l.accent, fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } },
+                React.createElement("span", { onClick: (e) => { e.stopPropagation(); const m = MISSIONS.find(x => x.levelId === l.id); go('taster', m ? m.taster : l.id); }, style: { display: 'inline-block', color: l.accent, fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' } },
                     "Try the free taster ",
                     '\u2192')))))),
         React.createElement("section", { style: { maxWidth: 1000, margin: '0 auto', padding: '50px 24px' } },
@@ -751,7 +751,7 @@ function LibraryPage({ go }) {
                 React.createElement("p", { style: { fontSize: 14, color: 'var(--muted)', marginBottom: 16, flex: 1 } }, m.blurb),
                 React.createElement("div", { style: { display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 } }, m.ranks.map((r, i) => (React.createElement("span", { key: i, style: { fontSize: 11, color: i === 0 ? m.accent : 'var(--muted)', border: '1px solid ' + (i === 0 ? m.accent : 'var(--border)'), borderRadius: 50, padding: '3px 10px', fontWeight: 600 } }, r)))),
                 React.createElement("div", { style: { display: 'flex', gap: 10, flexWrap: 'wrap' } },
-                    React.createElement("button", { onClick: () => go(m.route ? m.route : 'taster', m.route ? null : m.taster), className: "btn btn-outline", style: { flex: '1 1 120px', justifyContent: 'center', fontSize: 14 } }, "Free Taster"),
+                    React.createElement("button", { onClick: () => go('taster', m.taster), className: "btn btn-outline", style: { flex: '1 1 120px', justifyContent: 'center', fontSize: 14 } }, "Free Taster"),
                     React.createElement("button", { onClick: () => go('purchase', m.id), className: "btn btn-primary", style: { flex: '1 1 120px', justifyContent: 'center', fontSize: 14 } },
                         "Unlock ",
                         PRICING.single.founder))))))),
@@ -848,11 +848,14 @@ function PurchasePage({ id, go }) {
     const isAcademy = id === 'academy';
     const mission = MISSIONS.find(m => m.id === id);
     const [email, setEmail] = useState('');
-    const tier = isAcademy ? PRICING.academy : PRICING.single;
-    const title = isAcademy ? 'Founder Academy Pass' : (mission ? mission.career + ' \u00B7 ' + mission.level : 'Mission');
-    const accent = isAcademy ? '#F4D03F' : (mission ? mission.accent : '#1A8FE3');
+    const isBundle = id === 'bundle';
+    const tier = isAcademy ? PRICING.academy : (isBundle ? PRICING.bundle : PRICING.single);
+    const title = isAcademy ? 'Founder Academy Pass' : (isBundle ? 'Career Bundle \u00B7 All 3 Architect Levels' : (mission ? mission.career + ' \u00B7 ' + mission.level : 'Mission'));
+    const accent = isAcademy ? '#F4D03F' : (isBundle ? '#E91E8C' : (mission ? mission.accent : '#1A8FE3'));
     const included = isAcademy
         ? ['All three Architect levels (4 to 16)', 'Every future career we release, free', 'Every career in your first year, pay once', 'Certificates for every mission', 'Printer friendly versions']
+        : isBundle
+        ? ['All three Architect levels (Little Builder, Adventure Explorer, Principal Architect)', 'Every challenge in all three packs', 'XP, ranks and Real World Missions', 'Certificates for every level', 'Printer friendly versions']
         : ['9 unique challenges', mission ? ('Rank progression: ' + mission.ranks.join(', ')) : '', 'XP and progression', 'Real World Mission', 'Interactive explore panels', 'Certificate of Achievement', 'Printer friendly version'].filter(Boolean);
     const inputStyle = { width: '100%', background: 'rgba(255,255,255,0.06)', border: '2px solid var(--border)', borderRadius: 50, padding: '14px 24px', color: 'white', fontFamily: 'Open Sans,sans-serif', fontSize: 15, outline: 'none' };
     return (React.createElement("div", { style: { position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '60px 24px 80px' } },
@@ -873,7 +876,7 @@ function PurchasePage({ id, go }) {
                 React.createElement("input", { value: email, onChange: e => setEmail(e.target.value), placeholder: "you@example.com", type: "email", style: inputStyle }),
                 React.createElement("div", { style: { display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 } },
                     !isAcademy && mission && mission.route && React.createElement("button", { onClick: () => go(mission.route), className: "btn btn-secondary" }, "Preview the Mission"),
-                    !isAcademy && mission && (mission.route || mission.taster) && React.createElement("button", { onClick: () => go(mission.route ? mission.route : 'taster', mission.route ? null : mission.taster), className: "btn btn-outline" }, "Free Taster First"),
+                    !isAcademy && mission && mission.taster && React.createElement("button", { onClick: () => go('taster', mission.taster), className: "btn btn-outline" }, "Free Taster First"),
                     React.createElement("button", { onClick: () => checkout(id, email), className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 160, opacity: email.trim() ? 1 : 0.6, pointerEvents: email.trim() ? 'auto' : 'none' } },
                         "Buy Now ",
                         tier.founder)),
@@ -1025,7 +1028,7 @@ function Mission001Page({ go }) {
             React.createElement("div", { style: { fontSize: 80, marginBottom: 20 } }, "🔒"),
             React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontSize: 32, color: 'white', marginBottom: 10 } }, "Unlock Little Builder"),
             React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 30, fontSize: 18 } }, "Purchase to unlock this adventure and start exploring!"),
-            React.createElement("button", { onClick: () => go('purchase', '001'), className: "btn btn-primary", style: { padding: '15px 40px', fontSize: 18 } },
+            React.createElement("button", { onClick: () => go('purchase', 'arch-early'), className: "btn btn-primary", style: { padding: '15px 40px', fontSize: 18 } },
                 "🛍️ Unlock Now - £5.99"));
     }
     const [complete, setComplete] = useState(false);
@@ -1262,7 +1265,7 @@ function LittleBuilderPage({ go }) {
             React.createElement("div", { style: { fontSize: 80, marginBottom: 20 } }, "🔒"),
             React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontSize: 32, color: 'white', marginBottom: 10 } }, "Unlock Adventure Explorer"),
             React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 30, fontSize: 18 } }, "Purchase to unlock this level and continue your adventure!"),
-            React.createElement("button", { onClick: () => go('purchase', '002'), className: "btn btn-primary", style: { padding: '15px 40px', fontSize: 18, marginRight: 15 } },
+            React.createElement("button", { onClick: () => go('purchase', 'arch-adventure'), className: "btn btn-primary", style: { padding: '15px 40px', fontSize: 18, marginRight: 15 } },
                 "🛍️ Unlock Now - £5.99"),
             React.createElement("button", { onClick: () => go('purchase', 'bundle'), className: "btn btn-secondary", style: { padding: '15px 40px', fontSize: 18 } },
                 "📦 Career Bundle - £12.99"));
@@ -1429,7 +1432,7 @@ function PrincipalArchitectPage({ go }) {
             React.createElement("div", { style: { fontSize: 80, marginBottom: 20 } }, "🔒"),
             React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontSize: 32, color: 'white', marginBottom: 10 } }, "Unlock Principal Architect"),
             React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 30, fontSize: 18 } }, "You've mastered the basics! Purchase to unlock the expert level!"),
-            React.createElement("button", { onClick: () => go('purchase', '003'), className: "btn btn-primary", style: { padding: '15px 40px', fontSize: 18, marginRight: 15 } },
+            React.createElement("button", { onClick: () => go('purchase', 'arch-future'), className: "btn btn-primary", style: { padding: '15px 40px', fontSize: 18, marginRight: 15 } },
                 "🛍️ Unlock Now - £5.99"),
             React.createElement("button", { onClick: () => go('purchase', 'bundle'), className: "btn btn-secondary", style: { padding: '15px 40px', fontSize: 18 } },
                 "📦 All 3 Levels - £12.99"));
