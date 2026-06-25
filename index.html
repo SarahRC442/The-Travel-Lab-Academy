@@ -4,13 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Travel Lab Academy</title>
+<meta name="theme-color" content="#E91E8C">
+<meta name="description" content="Career exploration adventures for curious young explorers">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231F3A5F' width='192' height='192'/><text x='50%' y='50%' font-size='80' font-weight='bold' text-anchor='middle' dominant-baseline='middle' fill='%23E91E8C' font-family='sans-serif'>TL</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Open+Sans:wght@400;600&display=block" rel="stylesheet">
 <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://gumroad.com/js/gumroad.js"></script>
+<script src="https://js.stripe.com/v3/"></script>
 <style>
 :root{
   --navy:#1F3A5F;--navy2:#0D2137;--sky:#5DADE2;--blue:#1A8FE3;
@@ -52,8 +56,91 @@ body.ttl-calm *{animation:none !important;transition:none !important;}
 <div id="root"></div>
 <div id="ttl-error" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#E91E8C;color:#fff;font-family:sans-serif;padding:14px 18px;font-size:14px;line-height:1.5"></div>
 <script>
+// Service Worker Registration for PWA offline support
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch(e => console.log('SW registration failed'));
+}
+
+// Unlock Validator
+class UnlockValidator {
+  constructor() {
+    this.PRODUCT_MAP = {
+      'littlebuilder': '001',
+      'adventureexplorer': '002',
+      'principalarchitect': '003',
+      'careerbundle': ['001','002','003'],
+      'founderpass': ['001','002','003']
+    };
+  }
+  getUnlockKeyFromURL() {
+    const path = window.location.pathname;
+    const match = path.match(/\/unlock\/([a-z0-9-]+)/i);
+    return match ? match[1] : null;
+  }
+  hasAccess(missionId) {
+    const unlockKey = this.getUnlockKeyFromURL();
+    if (!unlockKey) return false;
+    const storedKeys = JSON.parse(localStorage.getItem('travellab_unlocks') || '{}');
+    if (!storedKeys[unlockKey]) return false;
+    const purchased = storedKeys[unlockKey];
+    const allowedMissions = this.PRODUCT_MAP[purchased.product];
+    if (Array.isArray(allowedMissions)) {
+      return allowedMissions.includes(missionId);
+    }
+    return allowedMissions === missionId;
+  }
+  registerUnlock(unlockKey, productKey, email) {
+    const storedKeys = JSON.parse(localStorage.getItem('travellab_unlocks') || '{}');
+    storedKeys[unlockKey] = { product: productKey, email: email, unlockedAt: new Date().toISOString() };
+    localStorage.setItem('travellab_unlocks', JSON.stringify(storedKeys));
+  }
+  getStatus() {
+    const key = this.getUnlockKeyFromURL();
+    const storedKeys = JSON.parse(localStorage.getItem('travellab_unlocks') || '{}');
+    if (key && storedKeys[key]) {
+      return { unlocked: true, key: key, product: storedKeys[key].product };
+    }
+    return { unlocked: false };
+  }
+}
+const unlockValidator = new UnlockValidator();
+
+// Check unlock status on load. If an /unlock/KEY link is opened and we have not
+// seen it before, validate it against the server, then remember it locally so
+// it works offline next time.
+window.addEventListener('load', () => {
+  const key = unlockValidator.getUnlockKeyFromURL();
+  if (!key) return;
+  const status = unlockValidator.getStatus();
+  if (status.unlocked) {
+    localStorage.setItem('travellab_unlocked_product', status.product);
+    return;
+  }
+  fetch('/api/validate-unlock?key=' + encodeURIComponent(key))
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.valid && data.product) {
+        unlockValidator.registerUnlock(key, data.product, '');
+        localStorage.setItem('travellab_unlocked_product', data.product);
+        window.location.reload();
+      }
+    })
+    .catch(() => {});
+});
+
+// After returning from Stripe (?success=true) the customer has paid but does not
+// yet have an unlock key in the URL. Their key arrives by email. We still show a
+// friendly confirmation by reading the product name from the return URL.
+(function handleStripeReturn(){
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      sessionStorage.setItem('ttl_just_paid', params.get('product') || '1');
+    }
+  } catch (e) {}
+})();
+
 window.addEventListener('error',function(e){
-  // Ignore non-fatal resource load errors (slow/blocked fonts, stylesheets, images).
   if(e && e.target && e.target!==window && (e.target.tagName==='LINK'||e.target.tagName==='IMG'||e.target.tagName==='SCRIPT')){ return; }
   if(!e.error && !e.message){ return; }
   var b=document.getElementById('ttl-error');
@@ -787,14 +874,10 @@ function PurchasePage({ id, go }) {
                 React.createElement("div", { style: { display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 } },
                     !isAcademy && mission && mission.route && React.createElement("button", { onClick: () => go(mission.route), className: "btn btn-secondary" }, "Preview the Mission"),
                     !isAcademy && mission && (mission.route || mission.taster) && React.createElement("button", { onClick: () => go(mission.route ? mission.route : 'taster', mission.route ? null : mission.taster), className: "btn btn-outline" }, "Free Taster First"),
-                    (GUMROAD[id]
-                        ? React.createElement("a", { href: GUMROAD[id], className: "btn btn-primary", "data-gumroad-overlay-checkout": "true", style: { flex: 1, justifyContent: 'center', minWidth: 160 } },
-                            "Buy Now ",
-                            tier.founder)
-                        : React.createElement("a", { href: "https://www.thetravellab.co.uk/", target: "_blank", rel: "noreferrer", className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 160, opacity: email.trim() ? 1 : 0.6, pointerEvents: email.trim() ? 'auto' : 'none' } },
-                            "Buy Now ",
-                            tier.founder))),
-                React.createElement("p", { style: { fontSize: 12, color: 'var(--muted)', marginTop: 16 } }, "Secure checkout powered by Gumroad. Your card details are handled entirely by the payment provider, we never see or store them. Your printable pack and access arrive by email the moment you buy.")))));
+                    React.createElement("button", { onClick: () => checkout(id, email), className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 160, opacity: email.trim() ? 1 : 0.6, pointerEvents: email.trim() ? 'auto' : 'none' } },
+                        "Buy Now ",
+                        tier.founder)),
+                React.createElement("p", { style: { fontSize: 12, color: 'var(--muted)', marginTop: 16 } }, "Secure checkout powered by Stripe. Your card details are handled entirely by the payment provider, we never see or store them. Your printable pack and unlock link arrive by email the moment you buy.")))));
 }
 function CertificatePage() {
     const [name, setName] = useState('');
@@ -905,12 +988,46 @@ const PAID = false;
 // Gumroad product links per purchase id. Only ids listed here open the Gumroad
 // overlay; any id not listed keeps the old internal Buy button. Add the other
 // products here once they are created in Gumroad.
-const GUMROAD = {
-    'arch-early': 'https://c442apps.gumroad.com/l/ewdafs',
-    'arch-adventure': 'https://c442apps.gumroad.com/l/chafqn',
-    'arch-future': 'https://c442apps.gumroad.com/l/bmdlzq',
+// Stripe products keyed by the purchase id used across the app (arch-early,
+// arch-adventure, arch-future, academy, bundle). Each maps to its Stripe
+// product id, friendly name and unlock key.
+const STRIPE_CONFIG = {
+  publishableKey: 'pk_live_51TiIb8Q7uEVu13nTE8saosq1Z1WJXwp5ROQOVHJ9grIpNlDBbPd8tqaJcGbiRajKmWOHVtGGTWugZCa6uoXsxM0k00Rpodvrmw',
+  products: {
+    'arch-early':     { id: 'prod_UiL1AQi55TDFz6', name: 'Little Builder',      key: 'littlebuilder' },
+    'arch-adventure': { id: 'prod_UliVsaZDbw1ET9', name: 'Adventure Explorer',  key: 'adventureexplorer' },
+    'arch-future':    { id: 'prod_UliWLaQiMJbrO2', name: 'Principal Architect', key: 'principalarchitect' },
+    'bundle':         { id: 'prod_UiL1excr3WDkaI', name: 'Career Bundle',       key: 'careerbundle' },
+    'academy':        { id: 'prod_UiL3IsUFSsuauW', name: 'Founder Pass',        key: 'founderpass' }
+  }
 };
+const stripe = Stripe(STRIPE_CONFIG.publishableKey);
+function checkout(missionId, email) {
+  const product = STRIPE_CONFIG.products[missionId];
+  if (!product) return alert('Sorry, this pack is not on sale yet.');
+  localStorage.setItem('customer_email', email || '');
+  fetch('/api/create-checkout-session', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({productId: product.id, email: email, productName: product.name})
+  }).then(r => r.json()).then(session => {
+    if (session && session.url) { window.location.href = session.url; }
+    else { alert('Checkout error: ' + (session && session.error ? session.error : 'no session')); }
+  }).catch(e => alert('Checkout error: ' + e));
+}
+const GUMROAD = {};
 function Mission001Page({ go }) {
+    // Check if user has access
+    const _u = localStorage.getItem('travellab_unlocked_product');
+    const hasAccess = _u === 'adventureexplorer' || _u === 'careerbundle' || _u === 'founderpass' || unlockValidator.hasAccess('002') || false;
+    if (!hasAccess) {
+        return React.createElement("div", { style: { textAlign: 'center', padding: '60px 24px', maxWidth: 800, margin: '0 auto' } },
+            React.createElement("div", { style: { fontSize: 80, marginBottom: 20 } }, "🔒"),
+            React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontSize: 32, color: 'white', marginBottom: 10 } }, "Unlock Little Builder"),
+            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 30, fontSize: 18 } }, "Purchase to unlock this adventure and start exploring!"),
+            React.createElement("button", { onClick: () => go('purchase', '001'), className: "btn btn-primary", style: { padding: '15px 40px', fontSize: 18 } },
+                "🛍️ Unlock Now - £5.99"));
+    }
     const [complete, setComplete] = useState(false);
     const [xp, setXp] = useState(0);
     const [scrolled, setScrolled] = useState(false);
@@ -1138,6 +1255,18 @@ function LBChallenge({ c, onDone }) {
         React.createElement("button", { onClick: mark, disabled: done, style: { marginTop: 18, width: '100%', background: done ? 'linear-gradient(135deg,' + LB.sun + ',#FFB800)' : 'linear-gradient(135deg,' + LB.coral + ',' + LB.coralDeep + ')', color: done ? LB.tealDeep : '#fff', border: 'none', borderRadius: 50, padding: '15px', fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 17, cursor: done ? 'default' : 'pointer' } }, done ? '\u2B50 10 Stars! Brilliant!' : 'I did it! \u2B50')));
 }
 function LittleBuilderPage({ go }) {
+    // Check if user has access to Adventure Explorer (002)
+    const hasAccess = localStorage.getItem('travellab_unlocked_product') === 'littlebuilder' || localStorage.getItem('travellab_unlocked_product') === 'careerbundle' || localStorage.getItem('travellab_unlocked_product') === 'founderpass' || unlockValidator.hasAccess('001') || false;
+    if (!hasAccess) {
+        return React.createElement("div", { style: { textAlign: 'center', padding: '60px 24px', maxWidth: 800, margin: '0 auto' } },
+            React.createElement("div", { style: { fontSize: 80, marginBottom: 20 } }, "🔒"),
+            React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontSize: 32, color: 'white', marginBottom: 10 } }, "Unlock Adventure Explorer"),
+            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 30, fontSize: 18 } }, "Purchase to unlock this level and continue your adventure!"),
+            React.createElement("button", { onClick: () => go('purchase', '002'), className: "btn btn-primary", style: { padding: '15px 40px', fontSize: 18, marginRight: 15 } },
+                "🛍️ Unlock Now - £5.99"),
+            React.createElement("button", { onClick: () => go('purchase', 'bundle'), className: "btn btn-secondary", style: { padding: '15px 40px', fontSize: 18 } },
+                "📦 Career Bundle - £12.99"));
+    }
     const [stars, setStars] = useState(0);
     const [scrolled, setScrolled] = useState(false);
     useEffect(() => {
@@ -1293,6 +1422,18 @@ function PAChallenge({ c, onXp }) {
         React.createElement("button", { onClick: claim, disabled: done, style: { width: '100%', marginTop: 18, background: done ? 'transparent' : 'linear-gradient(135deg,' + PA.ajblue + ',' + PA.magenta + ')', color: done ? PA.yellow : '#fff', border: done ? '2px solid ' + PA.yellow : 'none', borderRadius: 50, padding: '14px', fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 15, cursor: done ? 'default' : 'pointer' } }, done ? '\u2713 Complete \u00B7 +' + c.xp + ' XP' : 'Mark complete (+' + c.xp + ' XP)')));
 }
 function PrincipalArchitectPage({ go }) {
+    // Check if user has access to Principal Architect (003)
+    const hasAccess = localStorage.getItem('travellab_unlocked_product') === 'principalarchitect' || localStorage.getItem('travellab_unlocked_product') === 'careerbundle' || localStorage.getItem('travellab_unlocked_product') === 'founderpass' || unlockValidator.hasAccess('003') || false;
+    if (!hasAccess) {
+        return React.createElement("div", { style: { textAlign: 'center', padding: '60px 24px', maxWidth: 800, margin: '0 auto' } },
+            React.createElement("div", { style: { fontSize: 80, marginBottom: 20 } }, "🔒"),
+            React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontSize: 32, color: 'white', marginBottom: 10 } }, "Unlock Principal Architect"),
+            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 30, fontSize: 18 } }, "You've mastered the basics! Purchase to unlock the expert level!"),
+            React.createElement("button", { onClick: () => go('purchase', '003'), className: "btn btn-primary", style: { padding: '15px 40px', fontSize: 18, marginRight: 15 } },
+                "🛍️ Unlock Now - £5.99"),
+            React.createElement("button", { onClick: () => go('purchase', 'bundle'), className: "btn btn-secondary", style: { padding: '15px 40px', fontSize: 18 } },
+                "📦 All 3 Levels - £12.99"));
+    }
     const [xp, setXp] = useState(0);
     const [scrolled, setScrolled] = useState(false);
     const addXp = (amt) => setXp(x => x + amt);
@@ -1945,6 +2086,35 @@ function EliteManagerPage({ go }) {
                     " Claim My Certificate"))))));
 }
 // ===== ROUTER / APP =====
+function ConfirmationPage({ go }) {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const productName = params.get('product');
+    const unlockKey = params.get('key');
+    
+    useEffect(() => {
+        if (unlockKey) {
+            // Register unlock
+            const unlockedProduct = productName ? productName.toLowerCase().replace(/\s+/g, '') : 'unknown';
+            unlockValidator.registerUnlock(unlockKey, unlockedProduct, localStorage.getItem('customer_email') || 'unknown@example.com');
+            localStorage.setItem('travellab_unlocked_product', unlockedProduct);
+        }
+    }, [unlockKey]);
+    
+    return React.createElement("div", { style: { textAlign: 'center', padding: '60px 24px', maxWidth: 700, margin: '0 auto' } },
+        React.createElement("div", { style: { fontSize: 100, marginBottom: 20, animation: 'bounce 0.6s ease-out' } }, "🎉"),
+        React.createElement("h1", { style: { fontFamily: 'Montserrat,sans-serif', fontSize: 40, color: 'white', marginBottom: 15 } }, "Your Adventure Awaits!"),
+        productName && React.createElement("p", { style: { fontSize: 24, color: '#E91E8C', marginBottom: 30, fontFamily: 'Montserrat,sans-serif', fontWeight: 700 } }, productName),
+        React.createElement("div", { style: { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, padding: 30, marginBottom: 30 } },
+            React.createElement("h2", { style: { color: 'white', marginBottom: 20 } }, "✅ Payment Successful!"),
+            React.createElement("p", { style: { color: 'var(--muted)', marginBottom: 20, fontSize: 16 } }, "Your printable PDF pack has been sent to your email, plus your unlock link to access everything online."),
+            React.createElement("p", { style: { color: 'var(--sky)', marginBottom: 20, fontSize: 16 } }, "Everything syncs between print and screen, and works offline after the first load.")),
+        React.createElement("button", { onClick: () => go('mission001'), className: "btn btn-primary", style: { padding: '16px 50px', fontSize: 18, marginBottom: 15 } },
+            "▶️ Start Adventure Now"),
+        React.createElement("button", { onClick: () => go('home'), className: "btn btn-outline", style: { padding: '16px 50px', fontSize: 18 } },
+            "🏠 Back to Home"));
+}
+
 function App() {
     const [page, setPage] = useState('home');
     const [param, setParam] = useState(null);
@@ -1960,6 +2130,8 @@ function App() {
         content = React.createElement(TasterPage, { go: go, level: param });
     else if (page === 'purchase')
         content = React.createElement(PurchasePage, { id: param, go: go });
+    else if (page === 'confirmation')
+        content = React.createElement(ConfirmationPage, { go: go });
     else if (page === 'control')
         content = React.createElement(MissionControlPage, { go: go });
     else if (page === 'about')
