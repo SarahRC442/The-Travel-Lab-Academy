@@ -1,77 +1,64 @@
-// Vercel serverless function: /api/webhook
-// Listens for Stripe checkout.session.completed, generates a unique unlock key,
-// stores it, and emails the customer their unlock link via Resend.
-//
-// IMPORTANT: this file disables body parsing so Stripe signature verification
-// works on the raw request body (see `export const config` at the bottom).
-
+// Receives Stripe checkout.session.completed, creates a signed access link,
+// and emails it through Resend. The link can be opened on any device.
+const crypto = require('crypto');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Optional persistent store. If Vercel KV is connected its env vars exist and
-// we use it; otherwise we fall back to in-memory (fine for first live tests).
-let kv = null;
-try {
-  if (process.env.KV_REST_API_URL) {
-    kv = require('@vercel/kv').kv;
-  }
-} catch (e) {
-  kv = null;
-}
-const memory = {};
+const SITE_URL = (process.env.SITE_URL || 'https://www.thetravellabacademy.co.uk').replace(/\/$/, '');
+const ACCESS_SECRET = process.env.UNLOCK_SIGNING_SECRET;
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL;
 
-async function storeKey(unlockKey, data) {
-  if (kv) {
-    await kv.set('unlock:' + unlockKey, data);
-  } else {
-    memory[unlockKey] = data;
-  }
-}
-
-// Read the raw body for Stripe signature verification.
 function readRawBody(req) {
   return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', (chunk) => { data += chunk; });
-    req.on('end', () => resolve(Buffer.from(data)));
+    const chunks = [];
+    req.on('data', chunk => chunks.push(Buffer.from(chunk)));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
 }
 
-function generateUnlockKey(productKey) {
-  const random = Math.random().toString(36).substring(2, 8).toLowerCase();
-  return productKey + '-' + random;
+function createAccessToken(productKey, sessionId) {
+  if (!ACCESS_SECRET) {
+    throw new Error('UNLOCK_SIGNING_SECRET is not set');
+  }
+  const payload = Buffer.from(JSON.stringify({
+    p: productKey,
+    s: sessionId,
+    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 365 * 2),
+  })).toString('base64url');
+  const signature = crypto.createHmac('sha256', ACCESS_SECRET).update(payload).digest('base64url');
+  return payload + '.' + signature;
 }
 
-async function sendConfirmationEmail(email, productName, unlockKey) {
-  if (!email) return;
-  const unlockLink = 'https://thetravellab.co.uk/unlock/' + unlockKey;
-  const html = [
-    'Hello, and welcome to The Travel Lab Academy!',
-    '',
-    'Thank you for unlocking <strong>' + productName + '</strong>.',
-    '',
-    '<strong>Your personal unlock link:</strong><br>' +
-      '<a href="' + unlockLink + '">' + unlockLink + '</a>',
-    '',
-    'Open it on any device to start your adventure. It works offline after the first load, so you can take it anywhere.',
-    '',
-    'Dream Discover Become',
-    'The Travel Lab Academy by C442 Apps',
-  ].join('<br>');
-
-  try {
-    await resend.emails.send({
-      from: 'The Travel Lab Academy <onboarding@resend.dev>', // swap to hello@thetravellab.co.uk once the domain is verified in Resend
-      to: email,
-      subject: 'Your Travel Lab Academy ' + productName + ' is ready',
-      html: html,
-    });
-  } catch (err) {
-    console.error('Resend email failed:', err);
-    // Do not fail the webhook just because email failed; key is still stored.
+async function sendAccessEmail(email, productName, accessToken) {
+  if (!RESEND_FROM_EMAIL) {
+    throw new Error('RESEND_FROM_EMAIL is not set');
   }
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const accessLink = SITE_URL + '/unlock/' + accessToken;
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1F3A5F;max-width:620px;margin:0 auto;padding:24px">
+      <h1 style="margin:0 0 16px;color:#1F3A5F">Your adventure is ready</h1>
+      <p>Thank you for unlocking <strong>${escapeHtml(productName)}</strong>.</p>
+      <p>Use your personal link below whenever you want to open this adventure. It works on any device.</p>
+      <p style="margin:28px 0">
+        <a href="${accessLink}" style="display:inline-block;background:#E91E8C;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:28px;font-weight:bold">Open My Adventure</a>
+      </p>
+      <p style="font-size:13px;color:#52687f">Dream • Discover • Become<br>The Travel Lab Academy</p>
+    </div>`;
+
+  await resend.emails.send({
+    from: RESEND_FROM_EMAIL,
+    to: email,
+    subject: 'Your Travel Lab Academy adventure is ready',
+    html,
+  });
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[char]));
 }
 
 module.exports = async function handler(req, res) {
@@ -82,39 +69,36 @@ module.exports = async function handler(req, res) {
   let event;
   try {
     const rawBody = await readRawBody(req);
-    const sig = req.headers['stripe-signature'];
-    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(rawBody, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send('Webhook Error: ' + err.message);
+    return res.status(400).send('Webhook Error');
   }
 
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const md = session.metadata || {};
-    const productKey = md.product_key || 'unknown';
-    const productName = md.product_name || 'Your Pack';
-    const email = session.customer_details && session.customer_details.email
-      ? session.customer_details.email
-      : session.customer_email;
+    try {
+      const session = event.data.object;
+      const productKey = session.metadata && session.metadata.product_key;
+      const productName = session.metadata && session.metadata.product_name;
+      const email = (session.customer_details && session.customer_details.email) || session.customer_email;
 
-    const unlockKey = generateUnlockKey(productKey);
+      if (!productKey || !productName || !email) {
+        throw new Error('Missing purchase metadata or email');
+      }
 
-    await storeKey(unlockKey, {
-      product: productKey,
-      productName: productName,
-      email: email || null,
-      created: new Date().toISOString(),
-    });
-
-    await sendConfirmationEmail(email, productName, unlockKey);
-    console.log('Unlock key created:', unlockKey, 'for', email);
+      const accessToken = createAccessToken(productKey, session.id);
+      await sendAccessEmail(email, productName, accessToken);
+      console.log('Access email sent for', session.id);
+    } catch (err) {
+      console.error('Access email failed:', err.message);
+      // Return 500 so Stripe retries the webhook rather than silently losing access.
+      return res.status(500).json({ error: 'Could not send access email' });
+    }
   }
 
   return res.status(200).json({ received: true });
 };
 
-// Stripe needs the raw body, so turn off Vercel's automatic JSON parsing.
 module.exports.config = {
   api: { bodyParser: false },
 };
