@@ -10,7 +10,6 @@
 <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://gumroad.com/js/gumroad.js"></script>
 <style>
 :root{
   --navy:#1F3A5F;--navy2:#0D2137;--sky:#5DADE2;--blue:#1A8FE3;
@@ -763,13 +762,46 @@ function PurchasePage({ id, go }) {
     const isAcademy = id === 'academy';
     const mission = MISSIONS.find(m => m.id === id);
     const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const tier = isAcademy ? PRICING.academy : PRICING.single;
     const title = isAcademy ? 'Founder Academy Pass' : (mission ? mission.career + ' \u00B7 ' + mission.level : 'Mission');
     const accent = isAcademy ? '#F4D03F' : (mission ? mission.accent : '#1A8FE3');
     const included = isAcademy
-        ? ['All three Architect levels (4 to 16)', 'Every future career we release, free', 'Every career in your first year, pay once', 'Certificates for every mission', 'Printer friendly versions']
+        ? ['All three Architect levels (4 to 16)', 'Every future career we release in your first year', 'Certificates for every mission', 'Printer friendly versions']
         : ['9 unique challenges', mission ? ('Rank progression: ' + mission.ranks.join(', ')) : '', 'XP and progression', 'Real World Mission', 'Interactive explore panels', 'Certificate of Achievement', 'Printer friendly version'].filter(Boolean);
     const inputStyle = { width: '100%', background: 'rgba(255,255,255,0.06)', border: '2px solid var(--border)', borderRadius: 50, padding: '14px 24px', color: 'white', fontFamily: 'Open Sans,sans-serif', fontSize: 15, outline: 'none' };
+
+    const startCheckout = async () => {
+        const productKey = PURCHASE_PRODUCTS[id];
+        const cleanEmail = email.trim();
+        if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            setError('Please add a valid email address so we can send your access link.');
+            return;
+        }
+        if (!productKey) {
+            setError('This checkout is not ready yet. Please choose one of the live Architect packs.');
+            return;
+        }
+        setLoading(true);
+        setError('');
+        try {
+            const response = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productKey: productKey, email: cleanEmail })
+            });
+            const data = await response.json();
+            if (!response.ok || !data.url) {
+                throw new Error(data.error || 'Checkout could not start. Please try again.');
+            }
+            window.location.href = data.url;
+        } catch (err) {
+            setError(err && err.message ? err.message : 'Checkout could not start. Please try again.');
+            setLoading(false);
+        }
+    };
+
     return (React.createElement("div", { style: { position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', padding: '60px 24px 80px' } },
         React.createElement("div", { style: { background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, borderRadius: 20, padding: 32, marginBottom: 24 } },
             React.createElement("div", { style: { marginBottom: 10 } },
@@ -784,21 +816,18 @@ function PurchasePage({ id, go }) {
             React.createElement("div", { style: { borderTop: '1px solid var(--border)', marginTop: 24, paddingTop: 24 } },
                 React.createElement("div", { style: { marginBottom: 16 } },
                     React.createElement(PriceTag, { founder: tier.founder, full: tier.full, size: 36 })),
-                React.createElement("label", { style: { display: 'block', fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--sky)', marginBottom: 8 } }, "Your email (so we can send your pack)"),
-                React.createElement("input", { value: email, onChange: e => setEmail(e.target.value), placeholder: "you@example.com", type: "email", style: inputStyle }),
+                React.createElement("label", { style: { display: 'block', fontFamily: 'Montserrat,sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--sky)', marginBottom: 8 } }, "Your email, so we can send your access link"),
+                React.createElement("input", { value: email, onChange: e => setEmail(e.target.value), placeholder: "you@example.com", type: "email", autoComplete: "email", style: inputStyle }),
+                error && React.createElement("p", { style: { color: '#FF8FBF', fontSize: 13, marginTop: 10 } }, error),
                 React.createElement("div", { style: { display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 } },
                     !isAcademy && mission && mission.route && React.createElement("button", { onClick: () => go(mission.route), className: "btn btn-secondary" }, "Preview the Mission"),
                     !isAcademy && mission && (mission.route || mission.taster) && React.createElement("button", { onClick: () => go(mission.route ? mission.route : 'taster', mission.route ? null : mission.taster), className: "btn btn-outline" }, "Free Taster First"),
-                    (GUMROAD[id]
-                        ? React.createElement("a", { href: GUMROAD[id], className: "btn btn-primary", "data-gumroad-overlay-checkout": "true", style: { flex: 1, justifyContent: 'center', minWidth: 160 } },
-                            "Buy Now ",
-                            tier.founder)
-                        : React.createElement("a", { href: "https://www.thetravellab.co.uk/", target: "_blank", rel: "noreferrer", className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 160, opacity: email.trim() ? 1 : 0.6, pointerEvents: email.trim() ? 'auto' : 'none' } },
-                            "Buy Now ",
-                            tier.founder))),
-                React.createElement("p", { style: { fontSize: 12, color: 'var(--muted)', marginTop: 16 } }, "Secure checkout powered by Gumroad. Your card details are handled entirely by the payment provider, we never see or store them. Your printable pack and access arrive by email the moment you buy.")))));
+                    React.createElement("button", { onClick: startCheckout, disabled: loading, className: "btn btn-primary", style: { flex: 1, justifyContent: 'center', minWidth: 180, opacity: loading ? 0.72 : 1, cursor: loading ? 'wait' : 'pointer' } },
+                        loading ? "Opening secure checkout..." : ("Secure checkout " + tier.founder)),
+                React.createElement("p", { style: { fontSize: 12, color: 'var(--muted)', marginTop: 16 } }, "Secure checkout powered by Stripe. Your card details are handled by Stripe. We do not see or store them. Your personal access link arrives by email after payment."))))));
 }
 function CertificatePage() {
+    const PAID = hasAnyAccess();
     const [name, setName] = useState('');
     const [missionId, setMissionId] = useState('001');
     const [generated, setGenerated] = useState(false);
@@ -900,19 +929,48 @@ function AboutPage() {
                 React.createElement("div", { style: { marginTop: 10, fontStyle: 'italic', opacity: 0.85 } }, "Levels are a guide, not a rule. Children can explore whichever level feels right for them."))),
         React.createElement("p", { style: { textAlign: 'center', color: 'var(--muted)', marginTop: 40, fontSize: 14 } }, "The Travel Lab is created by C442 Apps.")));
 }
-// How many challenges are free before the paywall. Set PAID=true (or wire it
-// to your real purchase check) to unlock everything once Stripe is connected.
+// How many challenges are available before an explorer unlocks their full pack.
 const FREE_CHALLENGES = 2;
+
+// The football missions are still private development work. Architect access is
+// checked separately inside each Architect mission below.
 const PAID = false;
-// Gumroad product links per purchase id. Only ids listed here open the Gumroad
-// overlay; any id not listed keeps the old internal Buy button. Add the other
-// products here once they are created in Gumroad.
-const GUMROAD = {
-    'arch-early': 'https://c442apps.gumroad.com/l/ewdafs',
-    'arch-adventure': 'https://c442apps.gumroad.com/l/chafqn',
-    'arch-future': 'https://c442apps.gumroad.com/l/bmdlzq',
+
+const UNLOCK_STORAGE_KEY = 'ttla_unlocks_v1';
+const PURCHASE_PRODUCTS = {
+    'arch-early': 'littlebuilder',
+    'arch-adventure': 'adventureexplorer',
+    'arch-future': 'principalarchitect',
+    'academy': 'founderpass'
 };
+
+function getUnlocks() {
+    try {
+        const value = JSON.parse(localStorage.getItem(UNLOCK_STORAGE_KEY) || '{}');
+        return value && typeof value === 'object' ? value : {};
+    } catch (err) {
+        return {};
+    }
+}
+
+function saveUnlock(productKey) {
+    const unlocks = getUnlocks();
+    unlocks[productKey] = true;
+    localStorage.setItem(UNLOCK_STORAGE_KEY, JSON.stringify(unlocks));
+}
+
+function hasAccess(productKey) {
+    const unlocks = getUnlocks();
+    if (unlocks.founderpass || unlocks.careerbundle) return true;
+    return Boolean(unlocks[productKey]);
+}
+
+function hasAnyAccess() {
+    return Object.keys(getUnlocks()).length > 0;
+}
+
 function Mission001Page({ go }) {
+    const PAID = hasAccess('adventureexplorer');
     const [complete, setComplete] = useState(false);
     const [xp, setXp] = useState(0);
     const [scrolled, setScrolled] = useState(false);
@@ -1140,6 +1198,7 @@ function LBChallenge({ c, onDone }) {
         React.createElement("button", { onClick: mark, disabled: done, style: { marginTop: 18, width: '100%', background: done ? 'linear-gradient(135deg,' + LB.sun + ',#FFB800)' : 'linear-gradient(135deg,' + LB.coral + ',' + LB.coralDeep + ')', color: done ? LB.tealDeep : '#fff', border: 'none', borderRadius: 50, padding: '15px', fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 17, cursor: done ? 'default' : 'pointer' } }, done ? '\u2B50 10 Stars! Brilliant!' : 'I did it! \u2B50')));
 }
 function LittleBuilderPage({ go }) {
+    const PAID = hasAccess('littlebuilder');
     const [stars, setStars] = useState(0);
     const [scrolled, setScrolled] = useState(false);
     useEffect(() => {
@@ -1295,6 +1354,7 @@ function PAChallenge({ c, onXp }) {
         React.createElement("button", { onClick: claim, disabled: done, style: { width: '100%', marginTop: 18, background: done ? 'transparent' : 'linear-gradient(135deg,' + PA.ajblue + ',' + PA.magenta + ')', color: done ? PA.yellow : '#fff', border: done ? '2px solid ' + PA.yellow : 'none', borderRadius: 50, padding: '14px', fontFamily: 'Montserrat,sans-serif', fontWeight: 900, fontSize: 15, cursor: done ? 'default' : 'pointer' } }, done ? '\u2713 Complete \u00B7 +' + c.xp + ' XP' : 'Mark complete (+' + c.xp + ' XP)')));
 }
 function PrincipalArchitectPage({ go }) {
+    const PAID = hasAccess('principalarchitect');
     const [xp, setXp] = useState(0);
     const [scrolled, setScrolled] = useState(false);
     const addXp = (amt) => setXp(x => x + amt);
@@ -1950,6 +2010,31 @@ function EliteManagerPage({ go }) {
 function App() {
     const [page, setPage] = useState('home');
     const [param, setParam] = useState(null);
+    const [notice, setNotice] = useState('');
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('checkout') === 'success') {
+            setNotice('Payment received. Your personal access link is on its way to your email.');
+        }
+        const match = window.location.pathname.match(/^\/unlock\/(.+)$/);
+        if (!match) return;
+        const token = match[1];
+        fetch('/api/validate-unlock?token=' + encodeURIComponent(token))
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.valid && data.product) {
+                    saveUnlock(data.product);
+                    window.history.replaceState({}, '', '/?unlocked=' + encodeURIComponent(data.product));
+                    setNotice('Your adventure is unlocked on this device. Open Mission Control to begin.');
+                    setPage('control');
+                } else {
+                    setNotice('That access link is not valid. Please use the link in your email or contact us for help.');
+                }
+            })
+            .catch(() => setNotice('We could not open that access link just now. Please try again in a moment.'));
+    }, []);
+
     const go = (p, x = null) => { setPage(p); setParam(x); window.scrollTo(0, 0); };
     let content;
     if (page === 'home')
@@ -1983,6 +2068,8 @@ function App() {
     return (React.createElement(React.Fragment, null,
         page !== 'little-builder' && page !== 'football-star' && React.createElement(FloatingEmojis, null),
         React.createElement(NavBar, { go: go, page: page }),
+        notice && React.createElement("div", { style: { position: 'relative', zIndex: 4, maxWidth: 900, margin: '18px auto 0', padding: '0 20px' } },
+            React.createElement("div", { style: { background: 'rgba(93,173,226,0.16)', border: '1px solid rgba(93,173,226,0.5)', borderRadius: 14, padding: '14px 18px', color: 'white', fontSize: 14, textAlign: 'center' } }, notice)),
         React.createElement("main", { style: { position: 'relative', zIndex: 1, minHeight: '70vh' } }, content),
         React.createElement(Footer, { go: go }),
         React.createElement(MyWay, null)));
