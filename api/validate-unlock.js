@@ -15,7 +15,7 @@ try {
 const KNOWN_PRODUCTS = ['littlebuilder', 'adventureexplorer', 'principalarchitect', 'careerbundle', 'founderpass'];
 
 module.exports = async function handler(req, res) {
-    const key = (req.query && req.query.key) ? String(req.query.key) : '';
+    const key = (req.query && (req.query.key || req.query.token)) ? String(req.query.key || req.query.token) : '';
     if (!key) return res.status(400).json({ valid: false, error: 'No key' });
 
     try {
