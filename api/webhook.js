@@ -12,8 +12,8 @@ const path = require('path');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Sender email - change to your verified domain sender once Resend domain is verified.
-const FROM_EMAIL = process.env.FROM_EMAIL || 'The Travel Lab Academy <hello@thetravellabacademy.co.uk>';
+// Sender email - reads from RESEND_FROM_EMAIL env var (set in Vercel).
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || process.env.FROM_EMAIL || 'The Travel Lab Academy <hello@thetravellabacademy.co.uk>';
 const SITE_URL = process.env.SITE_URL || 'https://thetravellabacademy.co.uk';
 
 // Map product keys to the PDF filename in /public/pdfs/
@@ -66,21 +66,30 @@ function loadPdfAttachments(productKey) {
     const files = Array.isArray(entry) ? entry : [entry];
     const attachments = [];
     for (const filename of files) {
+        // Try multiple paths because Vercel can resolve __dirname differently
+        // depending on how the function bundle was built.
+        const candidates = [
+            path.join(__dirname, filename),
+            path.join(process.cwd(), 'api', filename),
+            path.join(process.cwd(), filename),
+        ];
+        let filePath = null;
+        for (const c of candidates) {
+            if (fs.existsSync(c)) { filePath = c; break; }
+        }
+        if (!filePath) {
+            console.warn('PDF not found, tried:', candidates.join(' | '));
+            continue;
+        }
         try {
-            // PDFs live in /api/pdfs/ alongside this webhook file so Vercel
-            // bundles them with the serverless function automatically.
-            const filePath = path.join(__dirname, 'pdfs', filename);
-            if (fs.existsSync(filePath)) {
-                const content = fs.readFileSync(filePath);
-                attachments.push({
-                    filename: filename,
-                    content: content.toString('base64'),
-                });
-            } else {
-                console.warn('PDF not found:', filePath);
-            }
+            const content = fs.readFileSync(filePath);
+            attachments.push({
+                filename: filename,
+                content: content.toString('base64'),
+            });
+            console.log('PDF attached from', filePath, '(' + content.length + ' bytes)');
         } catch (err) {
-            console.error('Error loading PDF', filename, err);
+            console.error('Error reading PDF', filename, err);
         }
     }
     return attachments;
