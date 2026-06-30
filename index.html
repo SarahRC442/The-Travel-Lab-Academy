@@ -819,16 +819,19 @@ function TasterPage({ go, level }) {
 }
 function PurchasePage({ id, go }) {
     const isAcademy = id === 'academy';
+    const isBundle = id === 'arch-bundle';
     const mission = MISSIONS.find(m => m.id === id);
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const tier = isAcademy ? PRICING.academy : PRICING.single;
-    const title = isAcademy ? 'Founder Academy Pass' : (mission ? mission.career + ' \u00B7 ' + mission.level : 'Mission');
-    const accent = isAcademy ? '#F4D03F' : (mission ? mission.accent : '#1A8FE3');
+    const tier = isAcademy ? PRICING.academy : (isBundle ? PRICING.bundle : PRICING.single);
+    const title = isAcademy ? 'Founder Academy Pass' : (isBundle ? 'Future Architect Career Bundle' : (mission ? mission.career + ' \u00B7 ' + mission.level : 'Mission'));
+    const accent = isAcademy ? '#F4D03F' : (isBundle ? '#1A8FE3' : (mission ? mission.accent : '#1A8FE3'));
     const included = isAcademy
-        ? ['All three Architect levels (4 to 16)', 'Every future career we release in your first year', 'Certificates for every mission', 'Printer friendly versions']
-        : ['9 unique challenges', mission ? ('Rank progression: ' + mission.ranks.join(', ')) : '', 'XP and progression', 'Real World Mission', 'Interactive explore panels', 'Certificate of Achievement', 'Printer friendly version'].filter(Boolean);
+        ? ['All three Architect levels', 'Every future career we release in your first year', 'Certificates for every mission', 'Printer friendly versions']
+        : (isBundle
+            ? ['All three Architect levels in one pack', 'Little Builder, Adventure Explorer and Principal Architect', '27 unique challenges across the three levels', 'A Real World Mission inside every level', 'Certificate of Achievement for each level', 'Three printable PDFs, one per level']
+            : ['9 unique challenges', mission ? ('Rank progression: ' + mission.ranks.join(', ')) : '', 'XP and progression', 'Real World Mission', 'Interactive explore panels', 'Certificate of Achievement', 'Printer friendly version'].filter(Boolean));
     const inputStyle = { width: '100%', background: 'rgba(255,255,255,0.06)', border: '2px solid var(--border)', borderRadius: 50, padding: '14px 24px', color: 'white', fontFamily: 'Open Sans,sans-serif', fontSize: 15, outline: 'none' };
 
     const startCheckout = async () => {
