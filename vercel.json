@@ -4,5 +4,10 @@
   "framework": null,
   "rewrites": [
     { "source": "/unlock/:key", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/webhook.js": {
+      "includeFiles": "api/*.pdf"
+    }
+  }
 }
