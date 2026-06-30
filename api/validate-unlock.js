@@ -1,45 +1,40 @@
-// Verifies a signed Travel Lab Academy access link.
-const crypto = require('crypto');
+// Vercel serverless function: /api/validate-unlock?key=littlebuilder-abc123
+// Returns { valid: true, product: 'littlebuilder' } if the key exists.
+// The front-end calls this when someone opens an /unlock/ link, then stores
+// the confirmed product in localStorage to unlock the matching mission.
 
-const ACCESS_SECRET = process.env.UNLOCK_SIGNING_SECRET;
-const ALLOWED_PRODUCTS = new Set([
-  'littlebuilder',
-  'adventureexplorer',
-  'principalarchitect',
-  'careerbundle',
-  'founderpass',
-]);
-
-function safeEqual(a, b) {
-  const left = Buffer.from(a || '');
-  const right = Buffer.from(b || '');
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
-}
-
-function verifyAccessToken(token) {
-  if (!ACCESS_SECRET || !token || !token.includes('.')) return null;
-  const [payload, signature] = token.split('.');
-  if (!payload || !signature) return null;
-
-  const expected = crypto.createHmac('sha256', ACCESS_SECRET).update(payload).digest('base64url');
-  if (!safeEqual(signature, expected)) return null;
-
-  try {
-    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    if (!data || !ALLOWED_PRODUCTS.has(data.p) || !data.exp || data.exp < Math.floor(Date.now() / 1000)) {
-      return null;
+let kv = null;
+try {
+    if (process.env.KV_REST_API_URL) {
+        kv = require('@vercel/kv').kv;
     }
-    return data;
-  } catch (err) {
-    return null;
-  }
+} catch (e) {
+    kv = null;
 }
+
+const KNOWN_PRODUCTS = ['littlebuilder', 'adventureexplorer', 'principalarchitect', 'careerbundle', 'founderpass'];
 
 module.exports = async function handler(req, res) {
-  const token = String((req.query && req.query.token) || '');
-  const data = verifyAccessToken(token);
-  if (!data) {
-    return res.status(200).json({ valid: false });
-  }
-  return res.status(200).json({ valid: true, product: data.p });
+    const key = (req.query && req.query.key) ? String(req.query.key) : '';
+    if (!key) return res.status(400).json({ valid: false, error: 'No key' });
+
+    try {
+        if (kv) {
+            const data = await kv.get('unlock:' + key);
+            if (data && data.product) {
+                return res.status(200).json({ valid: true, product: data.product, productName: data.productName });
+            }
+            return res.status(200).json({ valid: false });
+        }
+        // No KV connected: derive product from the key prefix as a fallback so
+        // links still work during early testing (key format is "product-random").
+        const product = key.split('-')[0];
+        if (KNOWN_PRODUCTS.includes(product)) {
+            return res.status(200).json({ valid: true, product: product, fallback: true });
+        }
+        return res.status(200).json({ valid: false });
+    } catch (err) {
+        console.error('validate-unlock error:', err);
+        return res.status(500).json({ valid: false, error: err.message });
+    }
 };
