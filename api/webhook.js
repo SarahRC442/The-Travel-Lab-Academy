@@ -67,8 +67,9 @@ function loadPdfAttachments(productKey) {
     const attachments = [];
     for (const filename of files) {
         try {
-            // PDFs live in /public/pdfs/ in the GitHub repo root.
-            const filePath = path.join(process.cwd(), 'public', 'pdfs', filename);
+            // PDFs live in /api/pdfs/ alongside this webhook file so Vercel
+            // bundles them with the serverless function automatically.
+            const filePath = path.join(__dirname, 'pdfs', filename);
             if (fs.existsSync(filePath)) {
                 const content = fs.readFileSync(filePath);
                 attachments.push({
